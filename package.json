@@ -1,0 +1,28 @@
+{
+  "name": "bootpress",
+  "version": "1.0.0",
+  "description": "REST service methods for express",
+  "main": "index.js",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ufukbakan/bootpress.git"
+  },
+  "keywords": [
+    "bootpress",
+    "express",
+    "rest",
+    "service",
+    "methods",
+    "spring",
+    "boot",
+    "like"
+  ],
+  "author": "Ufuk Bakan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ufukbakan/bootpress/issues"
+  },
+  "homepage": "https://github.com/ufukbakan/bootpress#readme"
+}
