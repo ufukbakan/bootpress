@@ -67,19 +67,10 @@ function Restify(target, key, desc) {
     }
 }
 
-function getOrThrow(data, error){
-    if(data === null || data === undefined){
-        throw error;
-    }else{
-        return data;
-    }
-}
-
 module.exports = {
     HttpError,
     HttpResponse,
     RestService,
     RestMethod,
-    Restify,
-    getOrThrow
+    Restify
 }
