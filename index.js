@@ -1,20 +1,16 @@
 class HttpError extends Error {
-    status
-    message
-    constructor(params) {
-        super(params.message);
-        this.stack += "\n" + params.message;
-        this.message = params.message;
-        this.status = params.status;
+    constructor(status, message) {
+        super(message);
+        this.stack += "\n" + message;
+        this.message = message;
+        this.status = status;
     }
 }
 
 class HttpResponse {
-    status
-    data
-    constructor(params) {
-        this.status = params.status;
-        this.data = params.data;
+    constructor(status, data) {
+        this.status = status;
+        this.data = data;
     }
 }
 
@@ -81,6 +77,7 @@ function getOrThrow(data, error){
 
 module.exports = {
     HttpError,
+    HttpResponse,
     RestService,
     RestMethod,
     Restify,

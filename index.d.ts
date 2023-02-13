@@ -3,7 +3,13 @@ import { RequestHandler } from "express"
 declare class HttpError extends Error {
     status: number
     message: string
-    constructor(params: { status: number, message: string })
+    constructor(status: number, message: string)
+}
+
+declare class HttpResponse<T> {
+    status: number
+    data: T
+    constructor(status: number, data: T)
 }
 
 type RestedService<T extends Record<string, any>> = { [K in keyof T]:
@@ -19,6 +25,7 @@ declare function getOrThrow<T, E extends Error>(data: T, error: E): T;
 
 export {
     HttpError,
+    HttpResponse,
     RestService,
     RestMethod,
     Restify,
