@@ -29,7 +29,3 @@ export {
     RestMethod,
     Restify
 }
-
-declare module "bootpress/helpers" {
-    export function getOrThrow<T, E extends HttpError>(data: T, error: E): T;
-}
