@@ -6,6 +6,15 @@ function getOrThrow(data, error){
     }
 }
 
+function getOrElse(data, defaultValue){
+    if(data === null || data === undefined){
+        return defaultValue;
+    }else{
+        return data;
+    }
+}
+
 module.exports = {
-    getOrThrow
+    getOrThrow,
+    getOrElse
 }
