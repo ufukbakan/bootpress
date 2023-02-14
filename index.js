@@ -14,17 +14,39 @@ class HttpResponse {
     }
 }
 
+const protectedProperties = [
+    "constructor",
+    "__defineGetter__",
+    "__defineSetter__",
+    "hasOwnProperty",
+    "__lookupGetter__",
+    "__lookupSetter__",
+    "isPrototypeOf",
+    "propertyIsEnumerable",
+    "toString",
+    "valueOf",
+    "__proto__",
+    "['__proto__']",
+    "toLocaleString"
+]
+
 function RestService(service) {
-    // else if a direct object instance:
+    if(typeof service == "function"){
+        try{
+            service = service();
+        }catch(e){
+            service = new service();
+        }
+    }
     let result = {};
     const descriptors = {
         ...Object.getOwnPropertyDescriptors(service),
-        ...Object.getOwnPropertyDescriptors(service.prototype)
+        ...Object.getOwnPropertyDescriptors(service.__proto__ || {})
     };
     const alteredDescriptors = Object.fromEntries(Object.entries(descriptors).map(keyvalue => {
         const propertyName = keyvalue[0];
         const value = keyvalue[1].value;
-        if (typeof value == "function" && propertyName != "constructor") {
+        if (typeof value == "function" && !protectedProperties.includes(propertyName) ) {
             return [
                 propertyName,
                 (...args) =>
@@ -43,26 +65,6 @@ function RestService(service) {
     }));
     Object.defineProperties(result, alteredDescriptors);
     return result;
-    // return Object.fromEntries(
-    //     Object.entries(service).map(keyvalue => {
-    //         if (typeof keyvalue[1] == "function" && keyvalue[0] != "constructor") {
-    //             return [
-    //                 keyvalue[0],
-    //                 (...args) =>
-    //                     (req, res) => {
-    //                         try {
-    //                             const result = keyvalue[1](...args);
-    //                             res.status(result.status || 200).json(result.data || result);
-    //                         } catch (e) {
-    //                             res.status(e.status || 500).json(e.message || e);
-    //                         }
-    //                     }
-    //             ]
-    //         } else {
-    //             return keyvalue;
-    //         }
-    //     })
-    // );
 }
 
 function RestMethod(callback) {
