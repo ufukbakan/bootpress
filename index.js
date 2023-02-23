@@ -22,8 +22,8 @@ const protectedProperties = [
     "__lookupGetter__",
     "__lookupSetter__",
     "isPrototypeOf",
-    "propertyIsEnumerable",
     "toString",
+    "toJSON",
     "valueOf",
     "__proto__",
     "['__proto__']",
@@ -43,6 +43,7 @@ function RestService(service) {
         ...Object.getOwnPropertyDescriptors(service),
         ...Object.getOwnPropertyDescriptors(service.__proto__ || {})
     };
+    const protectedDescriptors = Object.fromEntries(Object.entries(descriptors).filter(keyvalue => protectedProperties.includes(keyvalue[0])));
     const alteredDescriptors = Object.fromEntries(Object.entries(descriptors).filter(keyvalue => !protectedProperties.includes(keyvalue[0])).map(keyvalue => {
         const propertyName = keyvalue[0];
         const value = keyvalue[1].value;
@@ -69,6 +70,7 @@ function RestService(service) {
         }
     }));
     Object.defineProperties(result, alteredDescriptors);
+    Object.defineProperties(result, protectedDescriptors);
     return result;
 }
 
