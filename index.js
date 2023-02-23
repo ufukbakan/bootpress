@@ -29,12 +29,10 @@ function RestService(service) {
             service = new service();
         }
     }
-    let updatedService = {};
     const descriptors = {
         ...Object.getOwnPropertyDescriptors(service),
         ...Object.getOwnPropertyDescriptors(service.__proto__ || {})
     };
-    const protectedDescriptors = Object.fromEntries(Object.entries(descriptors).filter(keyvalue => protectedProperties.includes(keyvalue[0])));
     const alteredDescriptors = Object.fromEntries(Object.entries(descriptors).filter(keyvalue => !protectedProperties.includes(keyvalue[0])).map(keyvalue => {
         const propertyName = keyvalue[0];
         const value = keyvalue[1].value;
@@ -61,8 +59,7 @@ function RestService(service) {
         }
     }));
     Object.defineProperties(updatedService, alteredDescriptors);
-    Object.defineProperties(updatedService, protectedDescriptors);
-    return updatedService;
+    return service;
 }
 
 function RestMethod(callback) {
