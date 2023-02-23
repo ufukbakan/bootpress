@@ -31,10 +31,10 @@ const protectedProperties = [
 ]
 
 function RestService(service) {
-    if(typeof service == "function"){
-        try{
+    if (typeof service == "function") {
+        try {
             service = service();
-        }catch(e){
+        } catch (e) {
             service = new service();
         }
     }
@@ -43,21 +43,26 @@ function RestService(service) {
         ...Object.getOwnPropertyDescriptors(service),
         ...Object.getOwnPropertyDescriptors(service.__proto__ || {})
     };
-    const alteredDescriptors = Object.fromEntries(Object.entries(descriptors).map(keyvalue => {
+    const alteredDescriptors = Object.fromEntries(Object.entries(descriptors).filter(keyvalue => !protectedProperties.includes(keyvalue[0])).map(keyvalue => {
         const propertyName = keyvalue[0];
         const value = keyvalue[1].value;
-        if (typeof value == "function" && !protectedProperties.includes(propertyName) ) {
+        if (typeof value == "function" && !propertyName.startsWith("#")) {
             return [
                 propertyName,
-                (...args) =>
-                    (req, res) => {
-                        try {
-                            const result = value(...args);
-                            res.status(result.status || 200).json(result.data || result);
-                        } catch (e) {
-                            res.status(e.status || 500).json(e.message || e);
-                        }
-                    }
+                {
+                    value: (...args) =>
+                        (req, res) => {
+                            try {
+                                const result = value(...args);
+                                res.status(result.status || 200).json(result.data || result);
+                            } catch (e) {
+                                res.status(e.status || 500).json(e.message || e);
+                            }
+                        },
+                    configurable: keyvalue[1].configurable,
+                    writable: keyvalue[1].writable,
+                    enumerable: false
+                }
             ]
         } else {
             return keyvalue;
