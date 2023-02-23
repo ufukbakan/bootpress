@@ -1,4 +1,7 @@
-import { RequestHandler } from "express"
+import { Response } from "express"
+import { Request } from "express"
+
+type RequestHandler = (req: Request, res: Response) => void
 
 declare class HttpError extends Error {
     status: number
@@ -14,7 +17,7 @@ declare class HttpResponse<T> {
 
 type RestedService<T extends Record<string, any>> = { [K in keyof T]:
     T[K] extends Function
-    ? (...args: Parameters<T[K]>) => ((req: Request, res: Response) => void)
+    ? (...args: Parameters<T[K]>) => RequestHandler
     : T[K]
 }
 
