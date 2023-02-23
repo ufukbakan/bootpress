@@ -38,7 +38,7 @@ function RestService(service) {
             service = new service();
         }
     }
-    let result = {};
+    let updatedService = {};
     const descriptors = {
         ...Object.getOwnPropertyDescriptors(service),
         ...Object.getOwnPropertyDescriptors(service.__proto__ || {})
@@ -54,12 +54,12 @@ function RestService(service) {
                     value: ((...args) =>
                             (req, res) => {
                                 try {
-                                    const result = value.bind(result)(...args);
+                                    const result = value.bind(updatedService)(...args);
                                     res.status(result.status || 200).json(result.data || result);
                                 } catch (e) {
                                     res.status(e.status || 500).json(e.message || e);
                                 }
-                        }).bind(result),
+                        }),
                     configurable: keyvalue[1].configurable,
                     writable: keyvalue[1].writable,
                     enumerable: false
@@ -69,9 +69,9 @@ function RestService(service) {
             return keyvalue;
         }
     }));
-    Object.defineProperties(result, alteredDescriptors);
-    Object.defineProperties(result, protectedDescriptors);
-    return result;
+    Object.defineProperties(updatedService, alteredDescriptors);
+    Object.defineProperties(updatedService, protectedDescriptors);
+    return updatedService;
 }
 
 function RestMethod(callback) {
