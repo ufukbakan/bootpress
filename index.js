@@ -15,18 +15,9 @@ class HttpResponse {
 }
 
 const protectedProperties = [
-    "constructor",
-    "__defineGetter__",
-    "__defineSetter__",
-    "hasOwnProperty",
-    "__lookupGetter__",
-    "__lookupSetter__",
-    "isPrototypeOf",
     "toString",
     "toJSON",
     "valueOf",
-    "__proto__",
-    "['__proto__']",
     "toLocaleString"
 ]
 

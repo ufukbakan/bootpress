@@ -18,7 +18,7 @@ const UserServiceImpl = {
 const UserService = RestService(UserServiceImpl);
 
 app.get("/users", UserService.findAllUsers);
-app.get("/users/:id", (req) => UserService.findUserById(+req.params.id));
+app.get("/users/:id", (req, res) => UserService.findUserById(+req.params.id)(req, res));
 ```
 
 #### Advanced usage:
@@ -48,10 +48,14 @@ class PostServiceImpl {
     }
 }
 
-const PostService = RestService(new PostServiceImpl());
+const PostService = RestService(PostServiceImpl);
+// This is valid too:
+// const PostService = RestService(new PostServiceImpl());
 
-app.get("/posts/:id", (req) => PostService.findById(req.params.id));
-app.post("/posts/:id", (req) => PostService.add(+req.params.id));
+app.get("/posts", PostService.findAll())
+app.get("/posts/:id", (req, res) => PostService.findById(req.params.id)(req, res));
+app.post("/posts/:id", (req, res) => PostService.add(+req.params.id)(req, res));
+app.delete("/posts/:id", (req, res) => PostService.delete(+req.params.id)(req, res));
 ```
 
 ### **RestMethod**: Converts single method to RequestHandler
