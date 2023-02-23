@@ -51,15 +51,15 @@ function RestService(service) {
             return [
                 propertyName,
                 {
-                    value: (...args) =>
-                        (req, res) => {
-                            try {
-                                const result = value(...args);
-                                res.status(result.status || 200).json(result.data || result);
-                            } catch (e) {
-                                res.status(e.status || 500).json(e.message || e);
-                            }
-                        },
+                    value: ((...args) =>
+                            (req, res) => {
+                                try {
+                                    const result = value.bind(result)(...args);
+                                    res.status(result.status || 200).json(result.data || result);
+                                } catch (e) {
+                                    res.status(e.status || 500).json(e.message || e);
+                                }
+                        }).bind(result),
                     configurable: keyvalue[1].configurable,
                     writable: keyvalue[1].writable,
                     enumerable: false
@@ -90,7 +90,7 @@ function Restify(target, key, desc) {
     const oldFunc = desc.value;
     return {
         ...desc,
-        value: (...args) => {
+        value: ((...args) => {
             return (req, res) => {
                 try {
                     const result = oldFunc(...args);
@@ -100,7 +100,7 @@ function Restify(target, key, desc) {
                     res.status(e.status || 500).json(e.message || e);
                 }
             }
-        }
+        }).bind(target)
     }
 }
 
