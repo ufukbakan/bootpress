@@ -57,7 +57,7 @@ function RestService(service) {
                                     const result = value.bind(updatedService)(...args);
                                     res.status(result.status || 200).json(result.data || result);
                                 } catch (e) {
-                                    res.status(e.status || 500).json(e.message || e);
+                                    res.status(e.status || 500).send(e.message || e);
                                 }
                         }),
                     configurable: keyvalue[1].configurable,
