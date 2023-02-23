@@ -43,7 +43,7 @@ function RestService(service) {
                     value: ((...args) =>
                             (req, res) => {
                                 try {
-                                    const result = value.bind(updatedService)(...args);
+                                    const result = value.bind(service)(...args);
                                     res.status(result.status || 200).json(result.data || result);
                                 } catch (e) {
                                     res.status(e.status || 500).send(e.message || e);
@@ -58,7 +58,7 @@ function RestService(service) {
             return keyvalue;
         }
     }));
-    Object.defineProperties(updatedService, alteredDescriptors);
+    Object.defineProperties(service, alteredDescriptors);
     return service;
 }
 
