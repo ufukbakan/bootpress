@@ -41,13 +41,18 @@ function RestService(service) {
                 propertyName,
                 {
                     value: ((...args) =>
-                            (req, res) => {
-                                try {
-                                    const result = value.bind(service)(...args);
-                                    res.status(result.status || 200).json(result.data || result);
-                                } catch (e) {
-                                    res.status(e.status || 500).send(e.message || e);
+                        (req, res) => {
+                            try {
+                                const result = value.bind(service)(...args);
+                                if (result === undefined) {
+                                    throw new HttpError(200, "Your method is executed but it returned undefined. Please avoid using 'void' methods as service methods.");
+                                } else if (result === null) {
+                                    throw new HttpError(200, "Your method is executed but it returned null. At least a value is expected to be returned.");
                                 }
+                                res.status(result.status || 200).json(result.data || result);
+                            } catch (e) {
+                                res.status(e.status || 500).send(e.message || e);
+                            }
                         }),
                     configurable: keyvalue[1].configurable,
                     writable: keyvalue[1].writable,
