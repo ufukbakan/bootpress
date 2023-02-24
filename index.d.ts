@@ -27,14 +27,14 @@ declare function RestService<T extends Record<string, any>>(service: T): RestedS
 declare function RestMethod<T>(callback: () => T): RequestHandler;
 declare function Restify(target: any, key: string, desc: PropertyDescriptor): PropertyDescriptor;
 
-declare function PassParams(...paramNames: string[]): <T, Z>(handler: RequestHandlerWithArgs<T>) => (argHandler: Z) => Z extends RequestHandler ? void : RequestHandler
-declare function PassAllParams<T>(serviceFunction: T): <Z>(argHandler: Z) => Z extends RequestHandler ? void : RequestHandler
-declare function PassQueries(...queryNames: string[]): <T>(service: T) => <T, Z>(handler: RequestHandlerWithArgs<T>) => (argHandler: Z) => Z extends RequestHandler ? void : RequestHandler
-declare function PassAllQueries<T>(serviceFunction: T): <Z>(...args: Z) => Z extends Parameters<RequestHandler> ? RequestHandler : RequestHandlerWithArgs<Z>
-declare function PassCookies(...cookieNames: string[]): <T>(service: T) => <T, Z>(handler: RequestHandlerWithArgs<T>) => (argHandler: Z) => Z extends RequestHandler ? void : RequestHandler
-declare function PassAllCookies<T>(serviceFunction: T): <Z>(...args: Z) => Z extends Parameters<RequestHandler> ? RequestHandler : RequestHandlerWithArgs<Z>
-declare function PassBody<T>(serviceFunction: T): <Z>(...args: Z) => Z extends Parameters<RequestHandler> ? RequestHandler : RequestHandlerWithArgs<Z>
-declare function PassRequest<T>(serviceFunction: T): <Z>(...args: Z) => Z extends Parameters<RequestHandler> ? RequestHandler : RequestHandlerWithArgs<Z>
+declare function PassParams(...paramNames: string[]):  <T>(arg: T) => RequestHandler
+declare function PassAllParams<T>(serviceFunction: T):  <Z>(arg: Z) => RequestHandler
+declare function PassQueries(...queryNames: string[]):  <T>(arg: T) => RequestHandler
+declare function PassAllQueries<T>(serviceFunction: T):  <Z>(arg: Z) => RequestHandler
+declare function PassCookies(...cookieNames: string[]):  <T>(arg: T) => RequestHandler
+declare function PassAllCookies<T>(serviceFunction: T):  <Z>(arg: Z) => RequestHandler
+declare function PassBody<T>(serviceFunction: T): <Z>(arg: Z) => RequestHandler
+declare function PassRequest<T>(serviceFunction: T): <Z>(arg: Z) => RequestHandler
 
 export {
     HttpError,
