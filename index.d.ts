@@ -2,6 +2,7 @@ import { Response } from "express"
 import { Request } from "express"
 
 type RequestHandler = (req: Request, res: Response) => void
+type RequestHandlerWithArgs = (...args: any[]) => RequestHandler
 
 declare class HttpError extends Error {
     status: number
@@ -26,14 +27,14 @@ declare function RestService<T extends Record<string, any>>(service: T): RestedS
 declare function RestMethod<T>(callback: () => T): RequestHandler;
 declare function Restify(target: any, key: string, desc: PropertyDescriptor): PropertyDescriptor;
 
-declare function PassParams(...paramNames: string[]): <T extends RequestHandler>(serviceFunction: T) => RequestHandler
-declare function PassAllParams<T extends RequestHandler>(serviceFunction: T): RequestHandler
-declare function PassQueries(...queryNames: string[]): <T extends RequestHandler>(service: T) => RequestHandler
-declare function PassAllQueries<T extends RequestHandler>(serviceFunction: T): RequestHandler
-declare function PassCookies(...cookieNames: string[]): <T extends RequestHandler>(service: T) => RequestHandler
-declare function PassAllCookies<T extends RequestHandler>(serviceFunction: T): RequestHandler
-declare function PassBody<T extends RequestHandler>(serviceFunction: T): RequestHandler
-declare function PassRequest<T extends RequestHandler>(serviceFunction: T): RequestHandler
+declare function PassParams(...paramNames: string[]): <T extends RequestHandlerWithArgs>(serviceFunction: T) => RequestHandler
+declare function PassAllParams<T extends RequestHandlerWithArgs>(serviceFunction: T): RequestHandler
+declare function PassQueries(...queryNames: string[]): <T extends RequestHandlerWithArgs>(service: T) => RequestHandler
+declare function PassAllQueries<T extends RequestHandlerWithArgs>(serviceFunction: T): RequestHandler
+declare function PassCookies(...cookieNames: string[]): <T extends RequestHandlerWithArgs>(service: T) => RequestHandler
+declare function PassAllCookies<T extends RequestHandlerWithArgs>(serviceFunction: T): RequestHandler
+declare function PassBody<T extends RequestHandlerWithArgs>(serviceFunction: T): RequestHandler
+declare function PassRequest<T extends RequestHandlerWithArgs>(serviceFunction: T): RequestHandler
 
 export {
     HttpError,
