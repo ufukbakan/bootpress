@@ -5,6 +5,8 @@
 ### **RestService**: Converts all methods to Express RequestHandlers
 #### Basic usage:
 ```ts
+import { RestService } from "bootpress";
+
 const UserServiceImpl = {
     users: [1, 2, 3, 4],
     findAllUsers(): number[] {
@@ -17,12 +19,15 @@ const UserServiceImpl = {
 
 const UserService = RestService(UserServiceImpl);
 
-app.get("/users", UserService.findAllUsers);
+app.get("/users", UserService.findAllUsers());
 app.get("/users/:id", (req, res) => UserService.findUserById(+req.params.id)(req, res));
 ```
 
 #### Advanced usage:
 ```ts
+import { HttpError, HttpResponse, RestService } from "bootpress";
+import { getOrThrow } from "bootpress/helpers";
+
 class PostServiceImpl {
     posts = [1, 2, 3, 4, 5];
     findById(id: number | string) {
@@ -42,7 +47,7 @@ class PostServiceImpl {
             this.#printDeleted(id);
         }
     }
-    // use private methods to  
+    // private methods are protected 
     #printDeleted(id: number | string) {
         console.warn(`post ${id} is deleted`)
     }
@@ -61,6 +66,9 @@ app.delete("/posts/:id", (req, res) => PostService.delete(+req.params.id)(req, r
 ### **RestMethod**: Converts single method to RequestHandler
 #### Usage:
 ```ts
+import { HttpError, RestMethod } from "bootpress";
+import { getOrThrow } from "bootpress/helpers";
+
 class UserService {
     users = [1, 2, 3, 4];
     findAll()  {
@@ -85,6 +93,9 @@ app.get("/users/:id", (req) => userService.findById(+req.params.id))
 #### Note that currently decorators in Typescript doesn't support changing the return type of applied method. So you have to provide RequestHandler as an "or type":
 
 ```ts
+import { Restify } from "bootpress";
+import { RequestHandler } from "express";
+
 class LogServiceImpl {
     logs = ["log1", "log2", "log3"];
 
