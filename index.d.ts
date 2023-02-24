@@ -2,7 +2,6 @@ import { Response } from "express"
 import { Request } from "express"
 
 type RequestHandler = (req: Request, res: Response) => void
-type RequestHandlerWithArgs<T> = (...args: T) => RequestHandler
 
 declare class HttpError extends Error {
     status: number
