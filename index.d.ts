@@ -27,14 +27,14 @@ declare function RestService<T extends Record<string, any>>(service: T): RestedS
 declare function RestMethod<T>(callback: () => T): RequestHandler;
 declare function Restify(target: any, key: string, desc: PropertyDescriptor): PropertyDescriptor;
 
-declare function PassParams(...paramNames: string[]): <T extends RequestHandlerWithArgs>(serviceFunction: T) => RequestHandler
-declare function PassAllParams<T extends RequestHandlerWithArgs>(serviceFunction: T): RequestHandler
-declare function PassQueries(...queryNames: string[]): <T extends RequestHandlerWithArgs>(service: T) => RequestHandler
-declare function PassAllQueries<T extends RequestHandlerWithArgs>(serviceFunction: T): RequestHandler
-declare function PassCookies(...cookieNames: string[]): <T extends RequestHandlerWithArgs>(service: T) => RequestHandler
-declare function PassAllCookies<T extends RequestHandlerWithArgs>(serviceFunction: T): RequestHandler
-declare function PassBody<T extends RequestHandlerWithArgs>(serviceFunction: T): RequestHandler
-declare function PassRequest<T extends RequestHandlerWithArgs>(serviceFunction: T): RequestHandler
+declare function PassParams(...paramNames: string[]): <T>(serviceFunction: T) => T extends RequestHandler ? void : RequestHandler;
+declare function PassAllParams<T>(serviceFunction: T): T extends RequestHandler ? void : RequestHandler;
+declare function PassQueries(...queryNames: string[]): <T>(service: T) => T extends RequestHandler ? void : RequestHandler;
+declare function PassAllQueries<T>(serviceFunction: T): T extends RequestHandler ? void : RequestHandler;
+declare function PassCookies(...cookieNames: string[]): <T>(service: T) => T extends RequestHandler ? void : RequestHandler;
+declare function PassAllCookies<T>(serviceFunction: T): T extends RequestHandler ? void : RequestHandler;
+declare function PassBody<T>(serviceFunction: T): T extends RequestHandler ? void : RequestHandler;
+declare function PassRequest<T>(serviceFunction: T): T extends RequestHandler ? void : RequestHandler;
 
 export {
     HttpError,
