@@ -30,11 +30,11 @@ declare function Restify(target: any, key: string, desc: PropertyDescriptor): Pr
 declare function PassParams(...paramNames: string[]): <T, Z>(handler: RequestHandlerWithArgs<T>) => (argHandler: Z) => Z extends RequestHandler ? void : RequestHandler
 declare function PassAllParams<T>(serviceFunction: T): <Z>(argHandler: Z) => Z extends RequestHandler ? void : RequestHandler
 declare function PassQueries(...queryNames: string[]): <T>(service: T) => <T, Z>(handler: RequestHandlerWithArgs<T>) => (argHandler: Z) => Z extends RequestHandler ? void : RequestHandler
-declare function PassAllQueries<T>(serviceFunction: T): <Z>(...args: Z) => Z extends Parameters<RequestHandler> ? void : RequestHandler
+declare function PassAllQueries<T>(serviceFunction: T): <Z>(...args: Z) => Z extends Parameters<RequestHandler> ? void : RequestHandlerWithArgs
 declare function PassCookies(...cookieNames: string[]): <T>(service: T) => <T, Z>(handler: RequestHandlerWithArgs<T>) => (argHandler: Z) => Z extends RequestHandler ? void : RequestHandler
-declare function PassAllCookies<T>(serviceFunction: T): <Z>(...args: Z) => Z extends Parameters<RequestHandler> ? void : RequestHandler
-declare function PassBody<T>(serviceFunction: T): <Z>(...args: Z) => Z extends Parameters<RequestHandler> ? void : RequestHandler
-declare function PassRequest<T>(serviceFunction: T): <Z>(...args: Z) => Z extends Parameters<RequestHandler> ? void : RequestHandler
+declare function PassAllCookies<T>(serviceFunction: T): <Z>(...args: Z) => Z extends Parameters<RequestHandler> ? void : RequestHandlerWithArgs
+declare function PassBody<T>(serviceFunction: T): <Z>(...args: Z) => Z extends Parameters<RequestHandler> ? void : RequestHandlerWithArgs
+declare function PassRequest<T>(serviceFunction: T): <Z>(...args: Z) => Z extends Parameters<RequestHandler> ? void : RequestHandlerWithArgs
 
 export {
     HttpError,
