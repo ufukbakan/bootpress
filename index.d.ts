@@ -26,10 +26,27 @@ declare function RestService<T extends Record<string, any>>(service: T): RestedS
 declare function RestMethod<T>(callback: () => T): RequestHandler;
 declare function Restify(target: any, key: string, desc: PropertyDescriptor): PropertyDescriptor;
 
+declare function PassParams(...paramNames: string[]): <T extends RequestHandler>(serviceFunction: T) => RequestHandler
+declare function PassAllParams<T extends RequestHandler>(serviceFunction: T): RequestHandler
+declare function PassQueries(...queryNames: string[]): <T extends RequestHandler>(service: T) => RequestHandler
+declare function PassAllQueries<T extends RequestHandler>(serviceFunction: T): RequestHandler
+declare function PassCookies(...cookieNames: string[]): <T extends RequestHandler>(service: T) => RequestHandler
+declare function PassAllCookies<T extends RequestHandler>(serviceFunction: T): RequestHandler
+declare function PassBody<T extends RequestHandler>(serviceFunction: T): RequestHandler
+declare function PassRequest<T extends RequestHandler>(serviceFunction: T): RequestHandler
+
 export {
     HttpError,
     HttpResponse,
     RestService,
     RestMethod,
-    Restify
+    Restify,
+    PassParams,
+    PassAllParams,
+    PassQueries,
+    PassAllQueries,
+    PassCookies,
+    PassAllCookies,
+    PassBody,
+    PassRequest
 }

@@ -97,10 +97,154 @@ function Restify(target, key, desc) {
     }
 }
 
+
+function isResponse(o) {
+    return o instanceof Object && "socket" in o && "parser" in o.socket && "_httpMessage" in o.socket && o.socket._httpMessage.writable == true;
+}
+function isRequest(o) {
+    return o instanceof Object && "socket" in o && "url" in o && "body" in o && "params" in o && "query" in o && "res" in o;
+}
+
+function PassParams(...paramNames) {
+    return (actualHandler) => {
+        return (...args) => {
+            const [last1, last2, last3, ...others] = args.reverse();
+            if (isResponse(last2) && isRequest(last3)) {
+                const req = last3;
+                const res = last2;
+                const paramsToPass = paramNames.map(paramName => req.params[paramName]);
+                return actualHandler(...paramsToPass)(req, res);
+            } else {
+                return (req, res) => {
+                    const paramsToPass = paramNames.map(paramName => req.params[paramName]);
+                    return actualHandler(...paramsToPass, ...args)(req, res)
+                }
+            }
+        }
+    }
+}
+
+function PassQueries(...searchQueries) {
+    return (actualHandler) => {
+        return (...args) => {
+            const [last1, last2, last3, ...others] = args.reverse();
+            if (isResponse(last2) && isRequest(last3)) {
+                const req = last3;
+                const res = last2;
+                const paramsToPass = searchQueries.map(query => req.query[query]);
+                return actualHandler(...paramsToPass)(req, res);
+            } else {
+                return (req, res) => {
+                    const paramsToPass = searchQueries.map(query => req.query[query]);
+                    return actualHandler(...paramsToPass, ...args)(req, res)
+                }
+            }
+        }
+    }
+}
+
+function PassAllParams(actualHandler) {
+    return (...args) => {
+        const [last1, last2, last3, ...others] = args.reverse();
+        if (isResponse(last2) && isRequest(last3)) {
+            const req = last3;
+            const res = last2;
+            return actualHandler(req.params)(req, res);
+        } else {
+            return (req, res) => {
+                return actualHandler(req.params, ...args)(req, res)
+            }
+        }
+    }
+}
+
+function PassAllQueries(actualHandler) {
+    return (...args) => {
+        const [last1, last2, last3, ...others] = args.reverse();
+        if (isResponse(last2) && isRequest(last3)) {
+            const req = last3;
+            const res = last2;
+            return actualHandler(req.query)(req, res);
+        } else {
+            return (req, res) => {
+                return actualHandler(req.query, ...args)(req, res);
+            }
+        }
+    }
+}
+
+function PassBody(actualHandler) {
+    return (...args) => {
+        const [last1, last2, last3, ...others] = args.reverse();
+        if (isResponse(last2) && isRequest(last3)) {
+            const req = last3;
+            const res = last2;
+            return actualHandler(req.body)(req, res);
+        } else {
+            return (req, res) => actualHandler(req.body, ...args)(req, res)
+        }
+    }
+}
+
+function PassRequest(actualHandler) {
+    return (...args) => {
+        const [last1, last2, last3, ...others] = args.reverse();
+        if (isResponse(last2) && isRequest(last3)) {
+            const req = last3;
+            const res = last2;
+            return actualHandler(req)(req, res);
+        } else {
+            return (req, res) => actualHandler(req, ...args)(req, res)
+        }
+    }
+}
+
+function PassAllCookies(actualHandler) {
+    return (...args) => {
+        const [last1, last2, last3, ...others] = args.reverse();
+        if (isResponse(last2) && isRequest(last3)) {
+            const req = last3;
+            const res = last2;
+            return actualHandler(req.cookies)(req, res);
+        } else {
+            return (req, res) => {
+                return actualHandler(req.cookies, ...args)(req, res);
+            }
+        }
+    }
+}
+
+function PassCookies(...cookieNames) {
+    return (actualHandler) => {
+        return (...args) => {
+            const [last1, last2, last3, ...others] = args.reverse();
+            if (isResponse(last2) && isRequest(last3)) {
+                const req = last3;
+                const res = last2;
+                const paramsToPass = cookieNames.map(cookie => req.cookies[cookie]);
+                return actualHandler(...paramsToPass)(req, res);
+            } else {
+                return (req, res) => {
+                    const paramsToPass = cookieNames.map(cookie => req.cookies[cookie]);
+                    return actualHandler(...paramsToPass, ...args)(req, res)
+                }
+            }
+        }
+    }
+}
+
 module.exports = {
     HttpError,
     HttpResponse,
     RestService,
     RestMethod,
-    Restify
+    Restify,
+    PassParams,
+    PassAllParams,
+    PassQueries,
+    PassAllQueries,
+    PassAllCookies,
+    PassCookies,
+    PassBody,
+    PassRequest
 }
