@@ -1,8 +1,10 @@
-<h1 align="center" style="margin-bottom: 0" >bootpress</h1>
-<p align=center>Express but SpringBoot like</p>
+<h1 align="center" style="margin-bottom: 0" >
+<img src="bootpress.svg" height=100 alt="bootpress">
+</h1>
+<p align=center>Express but Spring Boot like</p>
 
 ## Methods
-### **RestService**: Converts all methods to Express RequestHandlers
+### **<u>RestService</u>**: Converts all methods to Express RequestHandlers
 #### Basic usage:
 ```ts
 import { RestService } from "bootpress";
@@ -63,7 +65,7 @@ app.post("/posts/:id", (req, res) => PostService.add(+req.params.id)(req, res));
 app.delete("/posts/:id", (req, res) => PostService.delete(+req.params.id)(req, res));
 ```
 
-### **RestMethod**: Converts single method to RequestHandler
+### **<u>RestMethod</u>**: Converts single method to RequestHandler
 #### Usage:
 ```ts
 import { HttpError, RestMethod } from "bootpress";
@@ -89,7 +91,7 @@ app.get("/users", userService.findAll())
 app.get("/users/:id", (req) => userService.findById(+req.params.id))
 ```
 
-### **Restify**: Decorator to convert a single method to RequestHandler
+### **<u>Restify</u>**: Decorator to convert a single method to RequestHandler
 #### Note that currently decorators in Typescript doesn't support changing the return type of applied method. So you have to provide RequestHandler as an "or type":
 
 ```ts
