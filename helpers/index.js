@@ -69,13 +69,21 @@ function asSchema(o, schema){
     for(let i = 0; i < schemaKeyValues.length; i ++){
         const key = schemaKeyValues[i][0];
         const expectedType = schemaKeyValues[i][1];
+        const errorMessage = `Value of ${key} should have been a ${expectedType} but it is a ${typeof o[key]}`;
+
         if(typeof expectedType === "object"){
             asSchema(o[key], expectedType);
-        }else if(typeof expectedType === "string"){
-            if(typeof o[key] !== expectedType){
-                throw new HttpError(400, `Value of ${key} should have been a ${expectedType} but it is a ${typeof o[key]}`);
+        }
+        else if(typeof expectedType === "string"){
+            if(expectedType.endsWith("?") && o[key] == null){
+                continue;
             }
-        }else {
+            expectedType.replace("?", "");
+            if(typeof o[key] !== expectedType){
+                throw new HttpError(400, errorMessage);
+            }
+        }
+        else {
             throw new HttpError(500, `Type of a schema key should be a primitive type or another schema`);
         }
     }

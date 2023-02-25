@@ -1,13 +1,16 @@
 import { HttpError } from "..";
 
-type JsSchema = {
-    [key: string]: "string" | "boolean" | "number" | JsSchema
-}
-
 type TypeMap = {
     "string": string,
+    "string?": string | null,
     "boolean": boolean,
+    "boolean?": boolean | null,
     "number": number,
+    "number?": number | null,
+}
+
+type JsSchema = {
+    [key: string]: keyof TypeMap | JsSchema
 }
 
 type SchemadRecord<T> = { [E in keyof T]: T[E] extends string ? TypeMap[T[E]] : SchemadRecord<T[E]> };
