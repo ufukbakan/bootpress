@@ -2,6 +2,7 @@ import { Response } from "express"
 import { Request } from "express"
 
 type RequestHandler = (req: Request, res: Response) => void
+type RequsetHandlerWithArgs = (...args: any[]) => RequestHandler
 
 declare class HttpError extends Error {
     status: number
@@ -26,14 +27,14 @@ declare function RestService<T extends Record<string, any>>(service: T): RestedS
 declare function RestMethod<T>(callback: () => T): RequestHandler;
 declare function Restify(target: any, key: string, desc: PropertyDescriptor): PropertyDescriptor;
 
-declare function PassParams(...paramNames: string[]):  (arg: RequestHandler) => RequestHandler
-declare function PassAllParams(serviceFunction: RequestHandler): RequestHandler
-declare function PassQueries(...queryNames: string[]):  (arg: RequestHandler) => RequestHandler
-declare function PassAllQueries(serviceFunction: RequestHandler): RequestHandler
-declare function PassCookies(...cookieNames: string[]):  (arg: RequestHandler) => RequestHandler
-declare function PassAllCookies(serviceFunction: RequestHandler):  RequestHandler
-declare function PassBody(serviceFunction: RequestHandler): RequestHandler
-declare function PassRequest(serviceFunction: RequestHandler): RequestHandler
+declare function PassBody(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
+declare function PassRequest(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
+declare function PassAllParams(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
+declare function PassAllQueries(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
+declare function PassAllCookies(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
+declare function PassParams(...paramNames: string[]): (serviceFunction: RequestHandler | RequsetHandlerWithArgs) => RequestHandler
+declare function PassQueries(...queryNames: string[]): (serviceFunction: RequestHandler | RequsetHandlerWithArgs) => RequestHandler
+declare function PassCookies(...cookieNames: string[]): (serviceFunction: RequestHandler |RequsetHandlerWithArgs) => RequestHandler
 
 export {
     HttpError,
