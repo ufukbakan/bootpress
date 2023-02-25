@@ -17,7 +17,7 @@ function getOrElse(data, defaultValue) {
 }
 
 function asBoolean(o, errorMessage = undefined, errorStatus = 400) {
-    errorMessage = errorMessage ?? `Value ${o} should have been a boolean but it is not.`;
+    errorMessage = errorMessage ?? `Value ${o} should have been a boolean but it's not`;
     if (typeof o === "string") {
         const lowercased = o.toLowerCase();
         const validBooleanStrings = new Map(Object.entries({
@@ -39,7 +39,7 @@ function asBoolean(o, errorMessage = undefined, errorStatus = 400) {
 }
 
 function asNumber(o, errorMessage = undefined, errorStatus = 400) {
-    errorMessage = errorMessage ?? `Value ${o} should have been a number but it is not.`
+    errorMessage = errorMessage ?? `Value ${o} should have been a number but it's not`
     if (typeof o === "number") {
         return o;
     }
@@ -53,7 +53,7 @@ function asNumber(o, errorMessage = undefined, errorStatus = 400) {
 }
 
 function asInteger(o, errorMessage = undefined, errorStatus = 400) {
-    errorMessage = errorMessage ?? `Value ${o} should have been a integer but it is not.`;
+    errorMessage = errorMessage ?? `Value ${o} should have been a integer but it's not`;
     let value = o;
     if (typeof o === "string") {
         value = Number(o);
@@ -69,7 +69,7 @@ function asSchema(o, schema){
     for(let i = 0; i < schemaKeyValues.length; i ++){
         const key = schemaKeyValues[i][0];
         const expectedType = schemaKeyValues[i][1];
-        const errorMessage = `Value of ${key} should have been a ${expectedType} but it is a ${typeof o[key]}`;
+        const errorMessage = `Value of ${key} should have been a ${expectedType} but it's a ${typeof o[key]}`;
 
         if(typeof expectedType === "object"){
             asSchema(o[key], expectedType);
