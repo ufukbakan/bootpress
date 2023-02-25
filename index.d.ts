@@ -26,14 +26,14 @@ declare function RestService<T extends Record<string, any>>(service: T): RestedS
 declare function RestMethod<T>(callback: () => T): RequestHandler;
 declare function Restify(target: any, key: string, desc: PropertyDescriptor): PropertyDescriptor;
 
-declare function PassParams(...paramNames: string[]):  <T>(arg: T) => RequestHandler
-declare function PassAllParams<T>(serviceFunction: T):  <Z>(arg: Z) => RequestHandler
-declare function PassQueries(...queryNames: string[]):  <T>(arg: T) => RequestHandler
-declare function PassAllQueries<T>(serviceFunction: T):  <Z>(arg: Z) => RequestHandler
-declare function PassCookies(...cookieNames: string[]):  <T>(arg: T) => RequestHandler
-declare function PassAllCookies<T>(serviceFunction: T):  <Z>(arg: Z) => RequestHandler
-declare function PassBody<T>(serviceFunction: T): <Z>(arg: Z) => RequestHandler
-declare function PassRequest<T>(serviceFunction: T): <Z>(arg: Z) => RequestHandler
+declare function PassParams(...paramNames: string[]):  (arg: RequestHandler) => RequestHandler
+declare function PassAllParams(serviceFunction: RequestHandler): RequestHandler
+declare function PassQueries(...queryNames: string[]):  (arg: RequestHandler) => RequestHandler
+declare function PassAllQueries(serviceFunction: RequestHandler): RequestHandler
+declare function PassCookies(...cookieNames: string[]):  (arg: RequestHandler) => RequestHandler
+declare function PassAllCookies(serviceFunction: RequestHandler):  RequestHandler
+declare function PassBody(serviceFunction: RequestHandler): RequestHandler
+declare function PassRequest(serviceFunction: RequestHandler): RequestHandler
 
 export {
     HttpError,
