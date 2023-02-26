@@ -117,7 +117,7 @@ function PassParams(...paramNames) {
             } else {
                 return (req, res) => {
                     const paramsToPass = paramNames.map(paramName => req.params[paramName]);
-                    return actualHandler(...paramsToPass, ...args)(req, res)
+                    return actualHandler(...args, ...paramsToPass)(req, res)
                 }
             }
         }
@@ -136,7 +136,7 @@ function PassQueries(...searchQueries) {
             } else {
                 return (req, res) => {
                     const paramsToPass = searchQueries.map(query => req.query[query]);
-                    return actualHandler(...paramsToPass, ...args)(req, res)
+                    return actualHandler(...args, ...paramsToPass)(req, res)
                 }
             }
         }
@@ -152,7 +152,7 @@ function PassAllParams(actualHandler) {
             return actualHandler(req.params)(req, res);
         } else {
             return (req, res) => {
-                return actualHandler(req.params, ...args)(req, res)
+                return actualHandler(...args, req.params)(req, res)
             }
         }
     }
@@ -167,7 +167,7 @@ function PassAllQueries(actualHandler) {
             return actualHandler(req.query)(req, res);
         } else {
             return (req, res) => {
-                return actualHandler(req.query, ...args)(req, res);
+                return actualHandler(...args, req.query)(req, res);
             }
         }
     }
@@ -181,7 +181,7 @@ function PassBody(actualHandler) {
             const res = last2;
             return actualHandler(req.body)(req, res);
         } else {
-            return (req, res) => actualHandler(req.body, ...args)(req, res)
+            return (req, res) => actualHandler(...args, req.body)(req, res)
         }
     }
 }
@@ -194,7 +194,7 @@ function PassRequest(actualHandler) {
             const res = last2;
             return actualHandler(req)(req, res);
         } else {
-            return (req, res) => actualHandler(req, ...args)(req, res)
+            return (req, res) => actualHandler(...args, req)(req, res)
         }
     }
 }
@@ -208,7 +208,7 @@ function PassAllCookies(actualHandler) {
             return actualHandler(req.cookies)(req, res);
         } else {
             return (req, res) => {
-                return actualHandler(req.cookies, ...args)(req, res);
+                return actualHandler(...args, req.cookies)(req, res);
             }
         }
     }
@@ -226,7 +226,7 @@ function PassCookies(...cookieNames) {
             } else {
                 return (req, res) => {
                     const paramsToPass = cookieNames.map(cookie => req.cookies[cookie]);
-                    return actualHandler(...paramsToPass, ...args)(req, res)
+                    return actualHandler(...args, ...paramsToPass)(req, res)
                 }
             }
         }
