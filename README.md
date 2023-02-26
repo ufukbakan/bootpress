@@ -1,5 +1,5 @@
 <h1 align="center" style="margin-bottom: 0" >
-<img src="bootpress.svg" height=100 alt="bootpress">
+<img src="bootpress.svg" height=120 alt="bootpress">
 </h1>
 <p align=center>Express but Spring Boot like</p>
 
@@ -7,62 +7,76 @@
 ### **<u>RestService</u>**: Converts all methods to Express RequestHandlers
 #### Basic usage:
 ```ts
-import { RestService } from "bootpress";
+import express from "express";
+import bodyparser from "body-parser";
+import { HttpError, PassParams, RestService } from "bootpress";
+import { asInteger, getOrThrow } from "bootpress/helpers";
+
+const app = express();
+app.use(bodyparser.json());
 
 const UserServiceImpl = {
     users: [1, 2, 3, 4],
     findAllUsers(): number[] {
         return this.users;
     },
-    findUserById(id: number) {
-        return this.users.find(user => user == id);
+    findUserById(idInParams: string) {
+        const id = asInteger(idInParams);
+        return getOrThrow(this.users.find(user => user == id), new HttpError(404, "Not Found"));
     }
 };
 
 const UserService = RestService(UserServiceImpl);
 
 app.get("/users", UserService.findAllUsers());
-app.get("/users/:id", (req, res) => UserService.findUserById(+req.params.id)(req, res));
+app.get("/users/:id", PassParams("id")(UserService.findUserById));
 ```
 
 #### Advanced usage:
 ```ts
-import { HttpError, HttpResponse, RestService } from "bootpress";
-import { getOrThrow } from "bootpress/helpers";
+import { HttpError, HttpResponse, PassBody, PassParams, PassQueries, RestService } from "bootpress";
+import { asInteger, asSchema, getOrThrow } from "bootpress/helpers";
 
 class PostServiceImpl {
     posts = [1, 2, 3, 4, 5];
     findById(id: number | string) {
+        console.log("looking for " + id);
         return getOrThrow(
             this.posts.find(p => p == id),
             new HttpError(404, "Post is not found")
         );
     }
-    add(id: number) {
-        this.posts.push(id);
-        return new HttpResponse(201, id);
+    add(body: any) {
+        let casted = asSchema(body, {
+            "id": "number"
+        });
+        this.posts.push(casted.id);
+        return new HttpResponse(201, casted.id);
     }
-    delete(id: number) {
-        const idx = this.posts.indexOf(id);
+    delete(deleteInQuery: string, idInQuery: string) {
+        const idx = deleteInQuery === "yes" ? this.posts.indexOf(asInteger(idInQuery)) : -1;
         if (idx > -1) {
             this.posts.splice(idx, 1);
-            this.#printDeleted(id);
+            this.#printDeleted(idInQuery);
         }
     }
-    // private methods are protected 
+    // use private methods to  
     #printDeleted(id: number | string) {
         console.warn(`post ${id} is deleted`)
+    }
+    findAll() {
+        return this.posts;
     }
 }
 
 const PostService = RestService(PostServiceImpl);
-// This is valid too:
+// this is valid too:
 // const PostService = RestService(new PostServiceImpl());
 
 app.get("/posts", PostService.findAll())
-app.get("/posts/:id", (req, res) => PostService.findById(req.params.id)(req, res));
-app.post("/posts/:id", (req, res) => PostService.add(+req.params.id)(req, res));
-app.delete("/posts/:id", (req, res) => PostService.delete(+req.params.id)(req, res));
+app.post("/posts", PassBody(PostService.add));
+app.delete("/posts", PassQueries("delete", "id")(PostService.delete));
+app.get("/posts/:id", PassParams("id")(PostService.findById));
 ```
 
 ### **<u>RestMethod</u>**: Converts single method to RequestHandler
