@@ -2,25 +2,30 @@ import { HttpError } from "..";
 
 type TypeMap = {
     "string": string,
+    "string[]": string[],
     "boolean": boolean,
+    "boolean[]": boolean[],
     "number": number,
+    "number[]": number[],
 }
 
-type ValidTypes = keyof TypeMap;
+type ValidTypeKeys = keyof TypeMap;
 type ValOf<T extends keyof TypeMap> = TypeMap[T]
 
 type StringEndsWithQm = `${string}?`;
 
 type JsSchema = {
-    [key: PropertyKey]: ValidTypes | JsSchema
+    [key: PropertyKey]: ValidTypeKeys | JsSchema | ArraySchema
 }
+
+type ArraySchema = [JsSchema]
 
 type RemoveQuestionMark<T extends string> = T extends `${infer Prefix}?` ? Prefix : T;
 
 type TypedSchema<T> = {
     [key in keyof T as `${RemoveQuestionMark<string & key>}`]:
-    key extends StringEndsWithQm ? T[key] extends ValidTypes ? ValOf<T[key]> | null : TypedSchema<T[key]> | null
-    : (T[key] extends ValidTypes ? ValOf<T[key]> : TypedSchema<T[key]>)
+    key extends StringEndsWithQm ? T[key] extends ValidTypeKeys ? ValOf<T[key]> | null : T[key] extends ArraySchema ? TypedSchema<T[key][0]>[] | null : TypedSchema<T[key]> | null
+    : (T[key] extends ValidTypeKeys ? ValOf<T[key]> : T[key] extends ArraySchema ? TypedSchema<T[key][0]>[] : TypedSchema<T[key]>)
 }
 
 export function getOrThrow<T, E extends HttpError>(data: T, error: E): T;
@@ -28,5 +33,6 @@ export function getOrElse<T, E>(data: T, defaultValue: E): T | E;
 export function asBoolean(o: any): boolean;
 export function asNumber(o: any): number;
 export function asInteger(o: any): number;
+export function asString(o: any): string;
 export function asSchema<T extends JsSchema>(o: any, jsSchema: T): TypedSchema<T>;
 export function schema<T extends JsSchema>(schema: T): T;

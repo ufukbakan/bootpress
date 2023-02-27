@@ -17,7 +17,7 @@ function getOrElse(data, defaultValue) {
 }
 
 function asBoolean(o, errorMessage = undefined, errorStatus = 400) {
-    errorMessage = errorMessage ?? `Value ${o} should have been a boolean but it's not`;
+    errorMessage = errorMessage ?? `Value ${o} should have been a boolean but it's ${typeof o}`;
     if (typeof o === "string") {
         const lowercased = o.toLowerCase();
         const validBooleanStrings = new Map(Object.entries({
@@ -39,7 +39,7 @@ function asBoolean(o, errorMessage = undefined, errorStatus = 400) {
 }
 
 function asNumber(o, errorMessage = undefined, errorStatus = 400) {
-    errorMessage = errorMessage ?? `Value ${o} should have been a number but it's not`
+    errorMessage = errorMessage ?? `Value ${o} should have been a number but it's ${typeof o}`
     if (typeof o === "number") {
         return o;
     }
@@ -53,7 +53,7 @@ function asNumber(o, errorMessage = undefined, errorStatus = 400) {
 }
 
 function asInteger(o, errorMessage = undefined, errorStatus = 400) {
-    errorMessage = errorMessage ?? `Value ${o} should have been a integer but it's not`;
+    errorMessage = errorMessage ?? `Value ${o} should have been a integer but it's ${typeof o}`;
     let value = o;
     if (typeof o === "string") {
         value = Number(o);
@@ -62,6 +62,16 @@ function asInteger(o, errorMessage = undefined, errorStatus = 400) {
         throw new HttpError(errorStatus, errorMessage);
     }
     return value;
+}
+
+function asString(o, errorMessage = undefined, errorStatus = 400) {
+    errorMessage = errorMessage ?? `Value ${o} should have been a string but it's not`;
+    const validTypes = ["string", "number"];
+    if(validTypes.includes(typeof o)){
+        return ''+o;
+    }else{
+        throw new HttpError(errorStatus, errorMessage);
+    }
 }
 
 function asSchema(o, schema) {
@@ -80,13 +90,20 @@ function asSchema(o, schema) {
         const errorMessage = o[key] == null ? `Value of ${key} should have been a ${expectedType} but it's null` : `Value of ${key} should have been a ${expectedType} but it's a ${typeof o[key]}`;
 
         if (typeof expectedType === "object") {
-            result[key] = asSchema(o[key], expectedType);
+            if (Array.isArray(expectedType)) {
+                result[key] = [];
+                for(let j = 0; j < o[key].length; j++){
+                    result[key][j] = asSchema(o[key][j], expectedType[0])
+                }
+            } else {
+                result[key] = asSchema(o[key], expectedType);
+            }
         }
         else if (typeof expectedType === "string") {
             if (typeof o[key] !== expectedType) {
                 throw new HttpError(400, errorMessage);
             } else {
-                result[key] = o [key];
+                result[key] = o[key];
             }
         }
         else {
@@ -102,5 +119,6 @@ module.exports = {
     asBoolean,
     asNumber,
     asInteger,
+    asString,
     asSchema
 }
