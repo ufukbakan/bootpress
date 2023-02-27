@@ -64,30 +64,36 @@ function asInteger(o, errorMessage = undefined, errorStatus = 400) {
     return value;
 }
 
-function asSchema(o, schema){
+function asSchema(o, schema) {
     const schemaKeyValues = Object.entries(schema);
-    for(let i = 0; i < schemaKeyValues.length; i ++){
-        const key = schemaKeyValues[i][0];
-        const expectedType = schemaKeyValues[i][1];
-        const errorMessage = `Value of ${key} should have been a ${expectedType} but it's a ${typeof o[key]}`;
-
-        if(typeof expectedType === "object"){
-            asSchema(o[key], expectedType);
-        }
-        else if(typeof expectedType === "string"){
-            if(expectedType.endsWith("?") && o[key] == null){
+    let result = {};
+    for (let i = 0; i < schemaKeyValues.length; i++) {
+        let key = schemaKeyValues[i][0];
+        if (key.endsWith("?")) {
+            key = key.substring(0, key.length - 1);
+            if (o[key] == null) {
+                result[key] = null;
                 continue;
             }
-            expectedType.replace("?", "");
-            if(typeof o[key] !== expectedType){
+        }
+        const expectedType = schemaKeyValues[i][1];
+        const errorMessage = o[key] == null ? `Value of ${key} should have been a ${expectedType} but it's null` : `Value of ${key} should have been a ${expectedType} but it's a ${typeof o[key]}`;
+
+        if (typeof expectedType === "object") {
+            result[key] = asSchema(o[key], expectedType);
+        }
+        else if (typeof expectedType === "string") {
+            if (typeof o[key] !== expectedType) {
                 throw new HttpError(400, errorMessage);
+            } else {
+                result[key] = o [key];
             }
         }
         else {
             throw new HttpError(500, `Type of a schema key should be a primitive type or another schema`);
         }
     }
-    return o;
+    return result;
 }
 
 module.exports = {
