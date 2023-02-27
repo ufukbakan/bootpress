@@ -207,6 +207,10 @@ function PassCookies(...cookieNames) {
     }
 }
 
+function schema(schema){
+    return schema;
+}
+
 module.exports = {
     HttpError,
     HttpResponse,
