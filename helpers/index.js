@@ -103,7 +103,7 @@ function asSchema(o, schema) {
             if (expectedType.endsWith("[]")) {
                 const elementType = expectedType.replace("[]", "");
                 for (let j = 0; j < o[key].length; j++){
-                    if(typeof o[key] !== elementType){
+                    if(typeof o[key][j] !== elementType){
                         throw new HttpError(400, `Each element of ${key} should have been a ${elementType} but faced with ${o[key][j]} with type ${typeof o[key][j]}`);
                     }
                 }
