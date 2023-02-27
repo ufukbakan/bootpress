@@ -105,20 +105,20 @@ function isRequest(o) {
     return o instanceof Object && "socket" in o && "url" in o && "body" in o && "params" in o && "query" in o && "res" in o;
 }
 
+function isRequstHandlerArgs(args) {
+    const [last1, last2, last3, ...others] = args.reverse();
+    return isResponse(last2) && isRequest(last3);
+}
+
 function PassParams(...paramNames) {
     return (actualHandler) => {
         return (...args) => {
-            const [last1, last2, last3, ...others] = args.reverse();
-            if (isResponse(last2) && isRequest(last3)) {
-                const req = last3;
-                const res = last2;
+            if (isRequstHandlerArgs(args)) {
+                const req = args.at(-3); const res = args.at(-2);
                 const paramsToPass = paramNames.map(paramName => req.params[paramName]);
                 return actualHandler(...paramsToPass)(req, res);
             } else {
-                return (req, res) => {
-                    const paramsToPass = paramNames.map(paramName => req.params[paramName]);
-                    return actualHandler(...args, ...paramsToPass)(req, res)
-                }
+                return (req, res) => { const paramsToPass = paramNames.map(paramName => req.params[paramName]); return actualHandler(...args, ...paramsToPass)(req, res); };
             }
         }
     }
@@ -127,17 +127,12 @@ function PassParams(...paramNames) {
 function PassQueries(...searchQueries) {
     return (actualHandler) => {
         return (...args) => {
-            const [last1, last2, last3, ...others] = args.reverse();
-            if (isResponse(last2) && isRequest(last3)) {
-                const req = last3;
-                const res = last2;
+            if (isRequstHandlerArgs(args)) {
+                const req = args.at(-3); const res = args.at(-2);
                 const paramsToPass = searchQueries.map(query => req.query[query]);
                 return actualHandler(...paramsToPass)(req, res);
             } else {
-                return (req, res) => {
-                    const paramsToPass = searchQueries.map(query => req.query[query]);
-                    return actualHandler(...args, ...paramsToPass)(req, res)
-                }
+                return (req, res) => { const paramsToPass = searchQueries.map(query => req.query[query]); return actualHandler(...args, ...paramsToPass)(req, res); };
             }
         }
     }
@@ -145,40 +140,30 @@ function PassQueries(...searchQueries) {
 
 function PassAllParams(actualHandler) {
     return (...args) => {
-        const [last1, last2, last3, ...others] = args.reverse();
-        if (isResponse(last2) && isRequest(last3)) {
-            const req = last3;
-            const res = last2;
+        if (isRequstHandlerArgs(args)) {
+            const req = args.at(-3); const res = args.at(-2);
             return actualHandler(req.params)(req, res);
         } else {
-            return (req, res) => {
-                return actualHandler(...args, req.params)(req, res)
-            }
+            return (req, res) => actualHandler(...args, req.params)(req, res);
         }
     }
 }
 
 function PassAllQueries(actualHandler) {
     return (...args) => {
-        const [last1, last2, last3, ...others] = args.reverse();
-        if (isResponse(last2) && isRequest(last3)) {
-            const req = last3;
-            const res = last2;
+        if (isRequstHandlerArgs(args)) {
+            const req = args.at(-3); const res = args.at(-2);
             return actualHandler(req.query)(req, res);
         } else {
-            return (req, res) => {
-                return actualHandler(...args, req.query)(req, res);
-            }
+            return (req, res) => actualHandler(...args, req.query)(req, res);
         }
     }
 }
 
 function PassBody(actualHandler) {
     return (...args) => {
-        const [last1, last2, last3, ...others] = args.reverse();
-        if (isResponse(last2) && isRequest(last3)) {
-            const req = last3;
-            const res = last2;
+        if (isRequstHandlerArgs(args)) {
+            const req = args.at(-3); const res = args.at(-2);
             return actualHandler(req.body)(req, res);
         } else {
             return (req, res) => actualHandler(...args, req.body)(req, res)
@@ -188,10 +173,8 @@ function PassBody(actualHandler) {
 
 function PassRequest(actualHandler) {
     return (...args) => {
-        const [last1, last2, last3, ...others] = args.reverse();
-        if (isResponse(last2) && isRequest(last3)) {
-            const req = last3;
-            const res = last2;
+        if (isRequstHandlerArgs(args)) {
+            const req = args.at(-3); const res = args.at(-2);
             return actualHandler(req)(req, res);
         } else {
             return (req, res) => actualHandler(...args, req)(req, res)
@@ -201,15 +184,11 @@ function PassRequest(actualHandler) {
 
 function PassAllCookies(actualHandler) {
     return (...args) => {
-        const [last1, last2, last3, ...others] = args.reverse();
-        if (isResponse(last2) && isRequest(last3)) {
-            const req = last3;
-            const res = last2;
+        if (isRequstHandlerArgs(args)) {
+            const req = args.at(-3); const res = args.at(-2);
             return actualHandler(req.cookies)(req, res);
         } else {
-            return (req, res) => {
-                return actualHandler(...args, req.cookies)(req, res);
-            }
+            return (req, res) => actualHandler(...args, req.cookies)(req, res);
         }
     }
 }
@@ -217,17 +196,12 @@ function PassAllCookies(actualHandler) {
 function PassCookies(...cookieNames) {
     return (actualHandler) => {
         return (...args) => {
-            const [last1, last2, last3, ...others] = args.reverse();
-            if (isResponse(last2) && isRequest(last3)) {
-                const req = last3;
-                const res = last2;
+            if (isRequstHandlerArgs(args)) {
+                const req = args.at(-3); const res = args.at(-2);
                 const paramsToPass = cookieNames.map(cookie => req.cookies[cookie]);
                 return actualHandler(...paramsToPass)(req, res);
             } else {
-                return (req, res) => {
-                    const paramsToPass = cookieNames.map(cookie => req.cookies[cookie]);
-                    return actualHandler(...args, ...paramsToPass)(req, res)
-                }
+                return (req, res) => { const paramsToPass = cookieNames.map(cookie => req.cookies[cookie]); return actualHandler(...args, ...paramsToPass)(req, res) };
             }
         }
     }
