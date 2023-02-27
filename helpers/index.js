@@ -113,6 +113,11 @@ function asSchema(o, schema) {
     return result;
 }
 
+
+function schema(schema){
+    return schema;
+}
+
 module.exports = {
     getOrThrow,
     getOrElse,
@@ -120,5 +125,6 @@ module.exports = {
     asNumber,
     asInteger,
     asString,
-    asSchema
+    asSchema,
+    schema
 }
