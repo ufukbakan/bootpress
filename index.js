@@ -106,7 +106,7 @@ function isRequest(o) {
 }
 
 function isRequstHandlerArgs(args) {
-    const [last1, last2, last3, ...others] = args.toReversed();
+    const [last1, last2, last3, ...others] = [...args].reverse();
     return isResponse(last2) && isRequest(last3);
 }
 
