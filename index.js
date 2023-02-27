@@ -14,27 +14,57 @@ class HttpResponse {
     }
 }
 
+const protectedProperties = [
+    "toString",
+    "toJSON",
+    "valueOf",
+    "toLocaleString"
+]
+
 function RestService(service) {
-    return Object.fromEntries(
-        Object.entries(service).map(keyvalue => {
-            if (typeof keyvalue[1] == "function") {
-                return [
-                    keyvalue[0],
-                    (...args) =>
+    if (typeof service == "function") {
+        try {
+            service = service();
+        } catch (e) {
+            service = new service();
+        }
+    }
+    const descriptors = {
+        ...Object.getOwnPropertyDescriptors(service),
+        ...Object.getOwnPropertyDescriptors(service.__proto__ || {})
+    };
+    const alteredDescriptors = Object.fromEntries(Object.entries(descriptors).filter(keyvalue => !protectedProperties.includes(keyvalue[0])).map(keyvalue => {
+        const propertyName = keyvalue[0];
+        const value = keyvalue[1].value;
+        if (typeof value == "function" && !propertyName.startsWith("#")) {
+            return [
+                propertyName,
+                {
+                    value: ((...args) =>
                         (req, res) => {
                             try {
-                                const result = keyvalue[1](...args);
+                                const result = value.bind(service)(...args);
+                                if (result === undefined) {
+                                    throw new HttpError(200, "Your method is executed but it returned undefined. Please avoid using 'void' methods as service methods.");
+                                } else if (result === null) {
+                                    throw new HttpError(200, "Your method is executed but it returned null. At least a value is expected to be returned.");
+                                }
                                 res.status(result.status || 200).json(result.data || result);
                             } catch (e) {
-                                res.status(e.status || 500).json(e.message || e);
+                                res.status(e.status || 500).send(e.message || e);
                             }
-                        }
-                ]
-            } else {
-                return keyvalue;
-            }
-        })
-    );
+                        }),
+                    configurable: keyvalue[1].configurable,
+                    writable: keyvalue[1].writable,
+                    enumerable: false
+                }
+            ]
+        } else {
+            return keyvalue;
+        }
+    }));
+    Object.defineProperties(service, alteredDescriptors);
+    return service;
 }
 
 function RestMethod(callback) {
@@ -53,7 +83,7 @@ function Restify(target, key, desc) {
     const oldFunc = desc.value;
     return {
         ...desc,
-        value: (...args) => {
+        value: ((...args) => {
             return (req, res) => {
                 try {
                     const result = oldFunc(...args);
@@ -62,6 +92,116 @@ function Restify(target, key, desc) {
                 } catch (e) {
                     res.status(e.status || 500).json(e.message || e);
                 }
+            }
+        }).bind(target)
+    }
+}
+
+
+function isResponse(o) {
+    return o instanceof Object && "socket" in o && "parser" in o.socket && "_httpMessage" in o.socket && o.socket._httpMessage.writable == true;
+}
+function isRequest(o) {
+    return o instanceof Object && "socket" in o && "url" in o && "body" in o && "params" in o && "query" in o && "res" in o;
+}
+
+function isRequstHandlerArgs(args) {
+    const [last1, last2, last3, ...others] = [...args].reverse();
+    return isResponse(last2) && isRequest(last3);
+}
+
+function PassParams(...paramNames) {
+    return (actualHandler) => {
+        return (...args) => {
+            if (isRequstHandlerArgs(args)) {
+                const req = args.at(-3); const res = args.at(-2);
+                const paramsToPass = paramNames.map(paramName => req.params[paramName]);
+                return actualHandler(...paramsToPass)(req, res);
+            } else {
+                return (req, res) => { const paramsToPass = paramNames.map(paramName => req.params[paramName]); return actualHandler(...args, ...paramsToPass)(req, res); };
+            }
+        }
+    }
+}
+
+function PassQueries(...searchQueries) {
+    return (actualHandler) => {
+        return (...args) => {
+            if (isRequstHandlerArgs(args)) {
+                const req = args.at(-3); const res = args.at(-2);
+                const paramsToPass = searchQueries.map(query => req.query[query]);
+                return actualHandler(...paramsToPass)(req, res);
+            } else {
+                return (req, res) => { const paramsToPass = searchQueries.map(query => req.query[query]); return actualHandler(...args, ...paramsToPass)(req, res); };
+            }
+        }
+    }
+}
+
+function PassAllParams(actualHandler) {
+    return (...args) => {
+        if (isRequstHandlerArgs(args)) {
+            const req = args.at(-3); const res = args.at(-2);
+            return actualHandler(req.params)(req, res);
+        } else {
+            return (req, res) => actualHandler(...args, req.params)(req, res);
+        }
+    }
+}
+
+function PassAllQueries(actualHandler) {
+    return (...args) => {
+        if (isRequstHandlerArgs(args)) {
+            const req = args.at(-3); const res = args.at(-2);
+            return actualHandler(req.query)(req, res);
+        } else {
+            return (req, res) => actualHandler(...args, req.query)(req, res);
+        }
+    }
+}
+
+function PassBody(actualHandler) {
+    return (...args) => {
+        if (isRequstHandlerArgs(args)) {
+            const req = args.at(-3); const res = args.at(-2);
+            return actualHandler(req.body)(req, res);
+        } else {
+            return (req, res) => actualHandler(...args, req.body)(req, res)
+        }
+    }
+}
+
+function PassRequest(actualHandler) {
+    return (...args) => {
+        if (isRequstHandlerArgs(args)) {
+            const req = args.at(-3); const res = args.at(-2);
+            return actualHandler(req)(req, res);
+        } else {
+            return (req, res) => actualHandler(...args, req)(req, res)
+        }
+    }
+}
+
+function PassAllCookies(actualHandler) {
+    return (...args) => {
+        if (isRequstHandlerArgs(args)) {
+            const req = args.at(-3); const res = args.at(-2);
+            return actualHandler(req.cookies)(req, res);
+        } else {
+            return (req, res) => actualHandler(...args, req.cookies)(req, res);
+        }
+    }
+}
+
+function PassCookies(...cookieNames) {
+    return (actualHandler) => {
+        return (...args) => {
+            if (isRequstHandlerArgs(args)) {
+                const req = args.at(-3); const res = args.at(-2);
+                const paramsToPass = cookieNames.map(cookie => req.cookies[cookie]);
+                return actualHandler(...paramsToPass)(req, res);
+            } else {
+                return (req, res) => { const paramsToPass = cookieNames.map(cookie => req.cookies[cookie]); return actualHandler(...args, ...paramsToPass)(req, res) };
             }
         }
     }
@@ -72,5 +212,13 @@ module.exports = {
     HttpResponse,
     RestService,
     RestMethod,
-    Restify
+    Restify,
+    PassParams,
+    PassAllParams,
+    PassQueries,
+    PassAllQueries,
+    PassAllCookies,
+    PassCookies,
+    PassBody,
+    PassRequest
 }
