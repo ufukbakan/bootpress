@@ -67,9 +67,9 @@ function asInteger(o, errorMessage = undefined, errorStatus = 400) {
 function asString(o, errorMessage = undefined, errorStatus = 400) {
     errorMessage = errorMessage ?? `Value ${o} should have been a string but it's not`;
     const validTypes = ["string", "number"];
-    if(validTypes.includes(typeof o)){
-        return ''+o;
-    }else{
+    if (validTypes.includes(typeof o)) {
+        return '' + o;
+    } else {
         throw new HttpError(errorStatus, errorMessage);
     }
 }
@@ -92,7 +92,7 @@ function asSchema(o, schema) {
         if (typeof expectedType === "object") {
             if (Array.isArray(expectedType)) {
                 result[key] = [];
-                for(let j = 0; j < o[key].length; j++){
+                for (let j = 0; j < o[key].length; j++) {
                     result[key][j] = asSchema(o[key][j], expectedType[0])
                 }
             } else {
@@ -100,10 +100,19 @@ function asSchema(o, schema) {
             }
         }
         else if (typeof expectedType === "string") {
-            if (typeof o[key] !== expectedType) {
-                throw new HttpError(400, errorMessage);
-            } else {
+            if (expectedType.endsWith("[]")) {
+                const elementType = expectedType.replace("[]", "");
+                for (let j = 0; j < o[key].length; j++){
+                    if(typeof o[key] !== elementType){
+                        throw new HttpError(400, `Each element of ${key} should have been a ${elementType} but faced with ${o[key][j]} with type ${typeof o[key][j]}`);
+                    }
+                }
                 result[key] = o[key];
+            }
+            else if (typeof o[key] === expectedType) {
+                result[key] = o[key];
+            } else {
+                throw new HttpError(400, errorMessage);
             }
         }
         else {
@@ -114,7 +123,7 @@ function asSchema(o, schema) {
 }
 
 
-function schema(schema){
+function schema(schema) {
     return schema;
 }
 
