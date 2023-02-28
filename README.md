@@ -8,12 +8,11 @@
 #### Basic usage:
 ```ts
 import express from "express";
-import bodyparser from "body-parser";
 import { HttpError, PassParams, RestService } from "bootpress";
 import { asInteger, getOrThrow } from "bootpress/helpers";
 
 const app = express();
-app.use(bodyparser.json());
+app.use(express.json());
 
 const UserServiceImpl = {
     users: [1, 2, 3, 4],
