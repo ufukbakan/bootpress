@@ -1,6 +1,6 @@
 bootpress.svg
 README.md
-.pnpm-lock.yaml
+pnpm-lock.yaml
 .vscode
 # Logs
 logs
