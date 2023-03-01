@@ -1,4 +1,4 @@
-const { HttpError } = require("..");
+const { HttpError } = require("../types");
 
 function getOrThrow(data, error) {
     if (data === null || data === undefined) {
@@ -34,6 +34,9 @@ function asBoolean(o, errorMessage = undefined, errorStatus = 400) {
         return validBooleanStrings.get(lowercased);
     } else if (typeof o === "boolean") {
         return o;
+    } else if (typeof o === "number"){
+        if(o === 1) return true;
+        if(o === 0) return false;
     }
     throw new HttpError(errorStatus, errorMessage);
 }
@@ -102,8 +105,8 @@ function asSchema(o, schema) {
         else if (typeof expectedType === "string") {
             if (expectedType.endsWith("[]")) {
                 const elementType = expectedType.replace("[]", "");
-                for (let j = 0; j < o[key].length; j++){
-                    if(typeof o[key][j] !== elementType){
+                for (let j = 0; j < o[key].length; j++) {
+                    if (typeof o[key][j] !== elementType) {
                         throw new HttpError(400, `Each element of ${key} should have been a ${elementType} but a ${typeof o[key][j]} is present (${o[key][j]})`);
                     }
                 }
@@ -127,6 +130,65 @@ function schema(schema) {
     return schema;
 }
 
+function asArrayOf(o, elementType) {
+    if (Array.isArray(o)) {
+        for (let i = 0; i < o.length; i++) {
+            if(typeof o[i] != elementType){
+                throw new HttpError(400, `Each element in array should have been a ${elementType} but ${o[i]} is present with type ${typeof o[i]}`);
+            }
+        }
+        return o;
+    } else {
+        throw new HttpError(400, `Provided object is not an array: ${JSON.stringify(o)}`)
+    }
+}
+
+function as(o, type) {
+    if (typeof type == "string") {
+        if (type.endsWith("[]")) {
+            // array check
+            const elementType = type.replace("[]", "");
+            return asArrayOf(o, elementType);
+        } else {
+            // primitive check
+            switch (type) {
+                case "string":
+                    return asString(o);
+                case "number":
+                    return asNumber(o);
+                case "boolean":
+                    return asBoolean(o);
+                case "integer":
+                    return asInteger(o);
+                default:
+                    throw new HttpError(500, `Unsupported type ${type}`);
+            }
+        }
+    } else if (typeof type == "object" && type != null) {
+        if (Array.isArray(type)) {
+            if(type.length > 1){
+                throw new HttpError(500, `You can define only one schema for types ArrayOf<Schema>`);
+            }else if (type.length < 1){
+                throw new HttpError(500, `You must define a schema for types ArrayOf<Schema>`);
+            }
+            // array schema validation
+            if(!Array.isArray(o)){
+                throw new HttpError(400, `Provided value should have been an array. (${JSON.stringify(o)})`)
+            }
+            const providedSchema = type[0];
+            for(let i = 0; i < o.length; i++){
+                asSchema(o[i], providedSchema);
+            }
+            return o;
+        } else {
+            // schema validation
+            return asSchema(o, type);
+        }
+    } else {
+        throw new HttpError(500, `Unsupported type check ${type}`)
+    }
+}
+
 module.exports = {
     getOrThrow,
     getOrElse,
@@ -135,5 +197,6 @@ module.exports = {
     asInteger,
     asString,
     asSchema,
-    schema
+    schema,
+    as
 }

@@ -1,7 +1,10 @@
 <h1 align="center" style="margin-bottom: 0" >
-<img src="bootpress.svg" height=120 alt="bootpress">
+<img src="https://raw.githubusercontent.com/ufukbakan/bootpress/main/bootpress.svg" height=120 alt="bootpress">
 </h1>
 <p align=center>Express but Spring Boot like</p>
+
+## Quick Start
+Recommended tool: [create-bootpress-app](https://www.npmjs.com/package/create-bootpress-app)
 
 ## Methods
 ### **<u>RestService</u>**: Converts all methods to Express RequestHandlers

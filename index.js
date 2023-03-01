@@ -1,18 +1,5 @@
-class HttpError extends Error {
-    constructor(status, message) {
-        super(message);
-        this.stack += "\n" + message;
-        this.message = message;
-        this.status = status;
-    }
-}
-
-class HttpResponse {
-    constructor(status, data) {
-        this.status = status;
-        this.data = data;
-    }
-}
+const { as } = require("./helpers");
+const { HttpError } = require("./types");
 
 const protectedProperties = [
     "toString",
@@ -171,6 +158,19 @@ function PassBody(actualHandler) {
     }
 }
 
+function PassBodyAs(type) {
+    return (actualHandler) => {
+        return (...args) => {
+            if (isRequstHandlerArgs(args)) {
+                const req = args.at(-3); const res = args.at(-2);
+                return actualHandler(as(req.body, type))(req, res);
+            } else {
+                return (req, res) => actualHandler(...args, as(req.body, type))(req, res);
+            }
+        }
+    }
+}
+
 function PassRequest(actualHandler) {
     return (...args) => {
         if (isRequstHandlerArgs(args)) {
@@ -208,8 +208,6 @@ function PassCookies(...cookieNames) {
 }
 
 module.exports = {
-    HttpError,
-    HttpResponse,
     RestService,
     RestMethod,
     Restify,
@@ -220,5 +218,6 @@ module.exports = {
     PassAllCookies,
     PassCookies,
     PassBody,
+    PassBodyAs,
     PassRequest
 }

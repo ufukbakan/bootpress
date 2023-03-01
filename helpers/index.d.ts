@@ -1,4 +1,4 @@
-import { HttpError } from "..";
+import { HttpError } from "../types";
 
 type TypeMap = {
     "string": string,
@@ -36,3 +36,4 @@ export function asInteger(o: any): number;
 export function asString(o: any): string;
 export function asSchema<T extends JsSchema>(o: any, jsSchema: T): TypedSchema<T>;
 export function schema<T extends JsSchema>(schema: T): T;
+export function as<T extends (ValidTypeKeys | JsSchema | ArraySchema)>(o:any, schema: T): T extends ValidTypeKeys ? ValOf<T> : TypedSchema<T>;
