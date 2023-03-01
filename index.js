@@ -8,6 +8,14 @@ const protectedProperties = [
     "toLocaleString"
 ]
 
+function reply(res, status, data) {
+    if (typeof data == "object") {
+        res.status(status).json(data);
+    } else {
+        res.status(status).send(data);
+    }
+}
+
 function RestService(service) {
     if (typeof service == "function") {
         try {
@@ -36,9 +44,9 @@ function RestService(service) {
                                 } else if (result === null) {
                                     throw new HttpError(200, "Your method is executed but it returned null. At least a value is expected to be returned.");
                                 }
-                                res.status(result.status || 200).json(result.data || result);
+                                reply(res, result.status || 200, result.data || result)
                             } catch (e) {
-                                res.status(e.status || 500).send(e.message || e);
+                                reply(res, e.status || 500, e.message || e);
                             }
                         }),
                     configurable: keyvalue[1].configurable,
@@ -58,10 +66,10 @@ function RestMethod(callback) {
     return (req, res) => {
         try {
             const result = callback();
-            res.status(result.status || 200).json(result.data || result);
+            reply(res, result.status || 200, result.data || result);
             return result;
         } catch (e) {
-            res.status(e.status || 500).json(e.message || e);
+            reply(res, e.status || 500, e.message || e)
         }
     }
 }
@@ -74,10 +82,10 @@ function Restify(target, key, desc) {
             return (req, res) => {
                 try {
                     const result = oldFunc(...args);
-                    res.status(result.status || 200).json(result.data || result);
+                    reply(res, result.status || 200, result.data || result);
                     return result;
                 } catch (e) {
-                    res.status(e.status || 500).json(e.message || e);
+                    reply(res, e.status || 500, e.message || e);
                 }
             }
         }).bind(target)
@@ -163,9 +171,20 @@ function PassBodyAs(type) {
         return (...args) => {
             if (isRequstHandlerArgs(args)) {
                 const req = args.at(-3); const res = args.at(-2);
-                return actualHandler(as(req.body, type))(req, res);
+                try {
+                    return actualHandler(as(req.body, type))(req, res);
+                } catch (e) {
+                    reply(res, e.status || 500, e.message || e);
+                }
+
             } else {
-                return (req, res) => actualHandler(...args, as(req.body, type))(req, res);
+                return (req, res) => {
+                    try{
+                        return actualHandler(...args, as(req.body, type))(req, res);
+                    }catch(e){
+                        reply(res, e.status || 500, e.message || e)
+                    }
+                }
             }
         }
     }
