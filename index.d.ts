@@ -17,13 +17,14 @@ declare function Restify(target: any, key: string, desc: PropertyDescriptor): Pr
 
 declare function PassBody(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
 declare function PassBodyAs(type: ValidTypeKeys | JsSchema | ArraySchema ): (serviceFunction: RequestHandler | RequsetHandlerWithArgs) => RequestHandler
-declare function PassRequest(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
 declare function PassAllParams(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
 declare function PassAllQueries(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
 declare function PassAllCookies(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
 declare function PassParams(...paramNames: string[]): (serviceFunction: RequestHandler | RequsetHandlerWithArgs) => RequestHandler
 declare function PassQueries(...queryNames: string[]): (serviceFunction: RequestHandler | RequsetHandlerWithArgs) => RequestHandler
 declare function PassCookies(...cookieNames: string[]): (serviceFunction: RequestHandler | RequsetHandlerWithArgs) => RequestHandler
+declare function PassRequest(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
+declare function PassResponse(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
 
 export {
     RestService,
@@ -37,5 +38,6 @@ export {
     PassAllCookies,
     PassBody,
     PassBodyAs,
-    PassRequest
+    PassRequest,
+    PassResponse
 }

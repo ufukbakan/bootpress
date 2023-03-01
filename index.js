@@ -201,6 +201,17 @@ function PassRequest(actualHandler) {
     }
 }
 
+function PassResponse(actualHandler) {
+    return (...args) => {
+        if (isRequstHandlerArgs(args)) {
+            const req = args.at(-3); const res = args.at(-2);
+            return actualHandler(res)(req, res);
+        } else {
+            return (req, res) => actualHandler(...args, res)(req, res)
+        }
+    }
+}
+
 function PassAllCookies(actualHandler) {
     return (...args) => {
         if (isRequstHandlerArgs(args)) {
@@ -238,5 +249,6 @@ module.exports = {
     PassCookies,
     PassBody,
     PassBodyAs,
-    PassRequest
+    PassRequest,
+    PassResponse
 }
