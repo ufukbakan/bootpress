@@ -36,5 +36,6 @@ export {
     PassCookies,
     PassAllCookies,
     PassBody,
+    PassBodyAs,
     PassRequest
 }
