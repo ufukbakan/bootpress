@@ -7,6 +7,8 @@ type TypeMap = {
     "boolean[]": boolean[],
     "number": number,
     "number[]": number[],
+    "integer": number,
+    "integer[]": number[]
 }
 
 type ValidTypeKeys = keyof TypeMap;
