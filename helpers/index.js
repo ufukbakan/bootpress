@@ -133,7 +133,9 @@ function schema(schema) {
 function asArrayOf(o, elementType) {
     if (Array.isArray(o)) {
         for (let i = 0; i < o.length; i++) {
-            if(typeof o[i] != elementType){
+            if(elementType === "integer"){
+                asInteger(o[i]);
+            }else if(typeof o[i] != elementType){
                 throw new HttpError(400, `Each element in array should have been a ${elementType} but ${o[i]} is present with type ${typeof o[i]}`);
             }
         }
@@ -150,6 +152,12 @@ function as(o, type) {
             const elementType = type.replace("[]", "");
             return asArrayOf(o, elementType);
         } else {
+            if(type.endsWith("?") && o == null){
+                return null;
+            }else if(type.endsWith("?") && o != null ){
+                const actualType = type.replace("?", "");
+                return as(o, actualType);
+            }
             // primitive check
             switch (type) {
                 case "string":

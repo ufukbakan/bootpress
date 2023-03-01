@@ -10,7 +10,7 @@ type TypeMap = {
 }
 
 type ValidTypeKeys = keyof TypeMap;
-type ValOf<T extends keyof TypeMap> = TypeMap[T]
+type ValOf<T extends ValidTypeKeys> = TypeMap[T]
 
 type StringEndsWithQm = `${string}?`;
 
@@ -36,4 +36,26 @@ export function asInteger(o: any): number;
 export function asString(o: any): string;
 export function asSchema<T extends JsSchema>(o: any, jsSchema: T): TypedSchema<T>;
 export function schema<T extends JsSchema>(schema: T): T;
-export function as<T extends (ValidTypeKeys | JsSchema | ArraySchema)>(o:any, schema: T): T extends ValidTypeKeys ? ValOf<T> : TypedSchema<T>;
+
+type ExtendedTypeMap = {
+    "string": string,
+    "string[]": string[],
+    "boolean": boolean,
+    "boolean[]": boolean[],
+    "number": number,
+    "number[]": number[],
+    "integer": number,
+    "integer[]": number[],
+    "string?": string | null,
+    "string[]?": string[] | null,
+    "boolean?": boolean | null,
+    "boolean[]?": boolean[] | null,
+    "number?": number | null,
+    "number[]?": number[] | null,
+    "integer?": number | null,
+    "integer[]?": number[] | null
+}
+
+type ExtendedTypeKeys = keyof ExtendedTypeMap;
+type ExtValOf<T extends ExtendedTypeKeys> = ExtendedTypeMap[T]
+export function as<T extends (ExtendedTypeKeys | JsSchema | ArraySchema)>(o:any, schema: T): T extends ExtendedTypeKeys ? ExtValOf<T> : TypedSchema<T>;
