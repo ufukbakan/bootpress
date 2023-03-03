@@ -127,3 +127,22 @@ const LogService = new LogServiceImpl();
 
 app.get("/logs", LogService.findAll() as RequestHandler)
 ```
+
+## v7.0.0 Release Notes:
+
+### Deprecated helper methods:
+- asSchema
+- asString
+- asBoolean
+- asInteger
+- asNumber
+
+Please use "as" or "asStrict" instead of these functions. For example:
+
+```ts
+//const x: string = asString(o); // deprecated
+const x: string = as(o, "string"); 
+```
+
+### Added helper methods:
+- asStrict

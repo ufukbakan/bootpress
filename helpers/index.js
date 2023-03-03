@@ -1,5 +1,7 @@
 const { HttpError } = require("../types");
 
+const allowedPrimitives = ["string", "number", "boolean", "integer"];
+
 function getOrThrow(data, error) {
     if (data === null || data === undefined) {
         throw error;
@@ -77,7 +79,7 @@ function asString(o, errorMessage = undefined, errorStatus = 400) {
     }
 }
 
-function asSchema(o, schema) {
+function asSchema(o, schema, strict = false) {
     const schemaKeyValues = Object.entries(schema);
     let result = {};
     for (let i = 0; i < schemaKeyValues.length; i++) {
@@ -103,7 +105,7 @@ function asSchema(o, schema) {
             }
         }
         else if (typeof expectedType === "string") {
-            result[key] = as(o[key], expectedType, key);
+            result[key] = strict ? asStrict(o[key], expectedType, key) : as(o[key], expectedType, key);
         }
         else {
             throw new HttpError(500, `Type of a schema key should be a primitive type or another schema`);
@@ -143,7 +145,7 @@ function as(o, type, namedErrorVariable = o) {
                 return null;
             } else if (type.endsWith("?") && o != null) {
                 const actualType = type.replace("?", "");
-                return as(o, actualType);
+                return as(o, actualType, namedErrorVariable);
             }
             // primitive check
             switch (type) {
@@ -185,14 +187,69 @@ function as(o, type, namedErrorVariable = o) {
     }
 }
 
+function asStrict(o, type, namedErrorVariable = o) {
+    if (typeof type === "string") {
+        if (type.endsWith("[]")) {
+            // array check
+            const elementType = type.replace("[]", "");
+            return asArrayOf(o, elementType);
+        } else { // non array types:
+            if (type.endsWith("?") && o == null) {
+                return null;
+            } else if (type.endsWith("?") && o != null) {
+                const actualType = type.replace("?", "");
+                return asStrict(o, actualType, namedErrorVariable);
+            }
+            // primitive check
+            if (!allowedPrimitives.includes(type)) {
+                throw new HttpError(500, `Unsupported type ${type}`);
+            }
+            return checkPrimitive(o, type, namedErrorVariable);
+        }
+    } else if (typeof type === "object" && type != null) {
+        if (Array.isArray(type)) {
+            if (type.length > 1) {
+                throw new HttpError(500, `You can define only one schema for types ArrayOf<Schema>`);
+            } else if (type.length < 1) {
+                throw new HttpError(500, `You must define a schema for types ArrayOf<Schema>`);
+            }
+            // array schema validation
+            if (!Array.isArray(o)) {
+                throw new HttpError(400, `Provided value should have been an array but it's ${typeof o}`)
+            }
+            const providedSchema = type[0];
+            let result = [];
+            for (let i = 0; i < o.length; i++) {
+                result.push(asSchema(o[i], providedSchema));
+            }
+            return result;
+        } else {
+            // schema validation
+            return asSchema(o, type);
+        }
+    } else {
+        throw new HttpError(500, `Unsupported type check ${type}`)
+    }
+}
+
+function checkPrimitive(o, type, varName = o) {
+    const error = new HttpError(400, `${varName} should have been a ${type}. But it's ${typeof o}`);
+    if (type === "integer") {
+        if (!Number.isInteger(o)) {
+            throw error;
+        }
+        return o;
+    }
+    if (typeof o !== type) {
+        throw error;
+    }
+    return o;
+}
+
 module.exports = {
     getOrThrow,
     getOrElse,
-    asBoolean,
-    asNumber,
-    asInteger,
-    asString,
-    asSchema,
     schema,
-    as
+    as,
+    asStrict
 }
