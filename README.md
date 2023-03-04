@@ -136,6 +136,7 @@ app.get("/logs", LogService.findAll() as RequestHandler)
 - asBoolean
 - asInteger
 - asNumber
+- PassBody (without args)
 
 Please use "as" or "asStrict" instead of these functions. For example:
 
@@ -145,4 +146,6 @@ const x: string = as(o, "string");
 ```
 
 ### Added helper methods:
-- asStrict
+- asStrict : Asserts types strictly
+- PassBody(schema): Body must be as same as schema
+- ParseBody(schema): Body have to be parsable to schema

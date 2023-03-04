@@ -70,7 +70,7 @@ function asInteger(o, errorMessage = undefined, errorStatus = 400) {
 }
 
 function asString(o, errorMessage = undefined, errorStatus = 400) {
-    errorMessage = errorMessage ?? `Value ${o} should have been a string but it's not`;
+    errorMessage = errorMessage ?? `Value ${o} should have been a string but it's ${typeof o}`;
     const validTypes = ["string", "number"];
     if (validTypes.includes(typeof o)) {
         return '' + o;
@@ -80,6 +80,9 @@ function asString(o, errorMessage = undefined, errorStatus = 400) {
 }
 
 function asSchema(o, schema, strict = false) {
+    if(!(schema instanceof Object) || Array.isArray(schema)){
+        throw new HttpError(500, `Schema is not valid ${JSON.stringify(schema)}`);
+    }
     const schemaKeyValues = Object.entries(schema);
     let result = {};
     for (let i = 0; i < schemaKeyValues.length; i++) {
@@ -92,16 +95,15 @@ function asSchema(o, schema, strict = false) {
             }
         }
         const expectedType = schemaKeyValues[i][1];
-        // const errorMessage = o[key] == null ? `Value of ${key} should have been a ${expectedType} but it's null` : `Value of ${key} should have been a ${expectedType} but it's a ${typeof o[key]}`;
 
         if (typeof expectedType === "object") {
             if (Array.isArray(expectedType)) {
                 result[key] = [];
                 for (let j = 0; j < o[key].length; j++) {
-                    result[key][j] = asSchema(o[key][j], expectedType[0])
+                    result[key][j] = asSchema(o[key][j], expectedType[0], strict)
                 }
             } else {
-                result[key] = asSchema(o[key], expectedType);
+                result[key] = asSchema(o[key], expectedType, strict);
             }
         }
         else if (typeof expectedType === "string") {
@@ -119,14 +121,10 @@ function schema(schema) {
     return schema;
 }
 
-function asArrayOf(o, elementType) {
+function asPrimitiveArrayOf(o, elementType) {
     if (Array.isArray(o)) {
         for (let i = 0; i < o.length; i++) {
-            if (elementType === "integer") {
-                asInteger(o[i]);
-            } else if (typeof o[i] != elementType) {
-                throw new HttpError(400, `Each element in array should have been a ${elementType} but ${o[i]} is present with type ${typeof o[i]}`);
-            }
+            o[i] = checkPrimitive(o[i], elementType, "Array elemet");
         }
         return o;
     } else {
@@ -135,11 +133,11 @@ function asArrayOf(o, elementType) {
 }
 
 function as(o, type, namedErrorVariable = o) {
-    if (typeof type == "string") {
+    if (typeof type === "string") {
         if (type.endsWith("[]")) {
             // array check
             const elementType = type.replace("[]", "");
-            return asArrayOf(o, elementType);
+            return asPrimitiveArrayOf(o, elementType);
         } else { // non array types:
             if (type.endsWith("?") && o == null) {
                 return null;
@@ -161,7 +159,7 @@ function as(o, type, namedErrorVariable = o) {
                     throw new HttpError(500, `Unsupported type ${type}`);
             }
         }
-    } else if (typeof type == "object" && type != null) {
+    } else if (typeof type === "object" && type != null) {
         if (Array.isArray(type)) {
             if (type.length > 1) {
                 throw new HttpError(500, `You can define only one schema for types ArrayOf<Schema>`);
@@ -192,7 +190,7 @@ function asStrict(o, type, namedErrorVariable = o) {
         if (type.endsWith("[]")) {
             // array check
             const elementType = type.replace("[]", "");
-            return asArrayOf(o, elementType);
+            return asPrimitiveArrayOf(o, elementType);
         } else { // non array types:
             if (type.endsWith("?") && o == null) {
                 return null;
@@ -220,12 +218,12 @@ function asStrict(o, type, namedErrorVariable = o) {
             const providedSchema = type[0];
             let result = [];
             for (let i = 0; i < o.length; i++) {
-                result.push(asSchema(o[i], providedSchema));
+                result.push(asSchema(o[i], providedSchema, true));
             }
             return result;
         } else {
             // schema validation
-            return asSchema(o, type);
+            return asSchema(o, type, true);
         }
     } else {
         throw new HttpError(500, `Unsupported type check ${type}`)

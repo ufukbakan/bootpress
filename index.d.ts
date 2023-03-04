@@ -15,8 +15,8 @@ declare function RestService<T extends Record<string, any>>(service: T): RestedS
 declare function RestMethod<T>(callback: () => T): RequestHandler;
 declare function Restify(target: any, key: string, desc: PropertyDescriptor): PropertyDescriptor;
 
-declare function PassBody(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
-declare function PassBodyAs(type: ValidTypeKeys | JsSchema | ArraySchema ): (serviceFunction: RequestHandler | RequsetHandlerWithArgs) => RequestHandler
+declare function ParseBody(type: ValidTypeKeys | JsSchema | ArraySchema ): (serviceFunction: RequestHandler | RequsetHandlerWithArgs) => RequestHandler
+declare function PassBody(type: ValidTypeKeys | JsSchema | ArraySchema ): (serviceFunction: RequestHandler | RequsetHandlerWithArgs) => RequestHandler
 declare function PassAllParams(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
 declare function PassAllQueries(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
 declare function PassAllCookies(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
@@ -36,8 +36,8 @@ export {
     PassAllQueries,
     PassCookies,
     PassAllCookies,
+    ParseBody,
     PassBody,
-    PassBodyAs,
     PassRequest,
     PassResponse
 }
