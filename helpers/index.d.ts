@@ -55,5 +55,5 @@ type ExtendedTypeMap = {
 
 type ExtendedTypeKeys = keyof ExtendedTypeMap;
 type ExtValOf<T extends ExtendedTypeKeys> = ExtendedTypeMap[T]
-export function as<T extends (ExtendedTypeKeys | JsSchema | ArraySchema)>(o:any, schema: T): T extends ExtendedTypeKeys ? ExtValOf<T> : TypedSchema<T>;
-export function asStrict<T extends (ExtendedTypeKeys | JsSchema | ArraySchema)>(o:any, schema: T): T extends ExtendedTypeKeys ? ExtValOf<T> : TypedSchema<T>;
+export function as<T extends (ExtendedTypeKeys | JsSchema | ArraySchema)>(o:any, type: T, errorVariableName?: string): T extends ExtendedTypeKeys ? ExtValOf<T> : TypedSchema<T>;
+export function asStrict<T extends (ExtendedTypeKeys | JsSchema | ArraySchema)>(o:any, type: T, errorVariableName?: string): T extends ExtendedTypeKeys ? ExtValOf<T> : TypedSchema<T>;
