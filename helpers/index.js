@@ -3,11 +3,15 @@ const { HttpError } = require("../types");
 const allowedPrimitives = ["string", "number", "boolean", "integer"];
 
 function getOrThrow(data, error) {
-    if (data === null || data === undefined) {
+    if (data === null || data === undefined || isEmptyArray(data)) {
         throw error;
     } else {
         return data;
     }
+}
+
+function isEmptyArray(x){
+    return Array.isArray(x) && x.length < 1;
 }
 
 function getOrElse(data, defaultValue) {

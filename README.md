@@ -128,7 +128,8 @@ const LogService = new LogServiceImpl();
 
 app.get("/logs", LogService.findAll() as RequestHandler)
 ```
-
+## v7.1.0 Release Notes:
+- getOrThrow: Throws specified error when value is an empty array too.
 ## v7.0.0 Release Notes:
 
 ### Deprecated helper methods:
