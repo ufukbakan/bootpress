@@ -31,12 +31,7 @@ type TypedSchema<T> = {
 }
 
 export function getOrThrow<T, E extends HttpError>(data: T, error: E): T;
-export function getOrElse<T, E>(data: T, defaultValue: E): T | E;
-export function asBoolean(o: any): boolean;
-export function asNumber(o: any): number;
-export function asInteger(o: any): number;
-export function asString(o: any): string;
-export function asSchema<T extends JsSchema>(o: any, jsSchema: T): TypedSchema<T>;
+export function getOrElse<T, E>(data: T, defaultValue: E): E extends NonNullable<infer T> ? E : T | E;
 export function schema<T extends JsSchema>(schema: T): T;
 
 type ExtendedTypeMap = {
@@ -60,4 +55,5 @@ type ExtendedTypeMap = {
 
 type ExtendedTypeKeys = keyof ExtendedTypeMap;
 type ExtValOf<T extends ExtendedTypeKeys> = ExtendedTypeMap[T]
-export function as<T extends (ExtendedTypeKeys | JsSchema | ArraySchema)>(o:any, schema: T): T extends ExtendedTypeKeys ? ExtValOf<T> : TypedSchema<T>;
+export function as<T extends (ExtendedTypeKeys | JsSchema | ArraySchema)>(o:any, type: T, errorVariableName?: string): T extends ExtendedTypeKeys ? ExtValOf<T> : TypedSchema<T>;
+export function asStrict<T extends (ExtendedTypeKeys | JsSchema | ArraySchema)>(o:any, type: T, errorVariableName?: string): T extends ExtendedTypeKeys ? ExtValOf<T> : TypedSchema<T>;

@@ -12,7 +12,7 @@ Recommended tool: [create-bootpress-app](https://www.npmjs.com/package/create-bo
 ```ts
 import express from "express";
 import { HttpError, PassParams, RestService } from "bootpress";
-import { asInteger, getOrThrow } from "bootpress/helpers";
+import { as, getOrThrow } from "bootpress/helpers";
 
 const app = express();
 app.use(express.json());
@@ -23,8 +23,8 @@ const UserServiceImpl = {
         return this.users;
     },
     findUserById(idInParams: string) {
-        const id = asInteger(idInParams);
-        return getOrThrow(this.users.find(user => user == id), new HttpError(404, "Not Found"));
+        const id = as(idInParams, "integer");
+        return getOrThrow(this.users.find(user => user === id), new HttpError(404, "Not Found"));
     }
 };
 
@@ -37,33 +37,34 @@ app.get("/users/:id", PassParams("id")(UserService.findUserById));
 #### Advanced usage:
 ```ts
 import { HttpError, HttpResponse, PassBody, PassParams, PassQueries, RestService } from "bootpress";
-import { asInteger, asSchema, getOrThrow } from "bootpress/helpers";
+import { as, asStrict, getOrThrow } from "bootpress/helpers";
 
 class PostServiceImpl {
     posts = [1, 2, 3, 4, 5];
-    findById(id: number | string) {
-        console.log("looking for " + id);
+    findById(id: string) {
         return getOrThrow(
-            this.posts.find(p => p == id),
+            this.posts.find(p => p === as(id, "integer")),
             new HttpError(404, "Post is not found")
         );
     }
     add(body: any) {
-        let casted = asSchema(body, {
+        let casted = asStrict(body, {
             "id": "number"
         });
         this.posts.push(casted.id);
         return new HttpResponse(201, casted.id);
     }
     delete(deleteInQuery: string, idInQuery: string) {
-        const idx = deleteInQuery === "yes" ? this.posts.indexOf(asInteger(idInQuery)) : -1;
+        const idx = deleteInQuery === "yes" ? this.posts.indexOf(as(idInQuery, "integer")) : -1;
         if (idx > -1) {
-            this.posts.splice(idx, 1);
-            this.#printDeleted(idInQuery);
+            this.#logDeleted(idInQuery);
+            return this.posts.splice(idx, 1);
+        }else {
+            throw new HttpError(404, "Post is not found")
         }
     }
     // use private methods to  
-    #printDeleted(id: number | string) {
+    #logDeleted(id: number | string) {
         console.warn(`post ${id} is deleted`)
     }
     findAll() {
@@ -127,3 +128,24 @@ const LogService = new LogServiceImpl();
 
 app.get("/logs", LogService.findAll() as RequestHandler)
 ```
+
+## v7.0.0 Release Notes:
+
+### Deprecated helper methods:
+- asSchema
+- asString
+- asBoolean
+- asInteger
+- asNumber
+
+Please use "as" or "asStrict" instead of these functions. For example:
+
+```ts
+//const x: string = asString(o); // deprecated
+const x: string = as(o, "string"); 
+```
+
+### Added / Changed helper methods:
+- asStrict : Asserts types strictly
+- PassBodyAs(schema): Body must be as same as schema
+- ParseBodyAs(schema): Body have to be parsable to schema

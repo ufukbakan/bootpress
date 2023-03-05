@@ -1,4 +1,4 @@
-const { as } = require("./helpers");
+const { as, asStrict } = require("./helpers");
 const { HttpError } = require("./types");
 
 const protectedProperties = [
@@ -155,18 +155,7 @@ function PassAllQueries(actualHandler) {
     }
 }
 
-function PassBody(actualHandler) {
-    return (...args) => {
-        if (isRequstHandlerArgs(args)) {
-            const req = args.at(-3); const res = args.at(-2);
-            return actualHandler(req.body)(req, res);
-        } else {
-            return (req, res) => actualHandler(...args, req.body)(req, res)
-        }
-    }
-}
-
-function PassBodyAs(type) {
+function ParseBodyAs(type) {
     return (actualHandler) => {
         return (...args) => {
             if (isRequstHandlerArgs(args)) {
@@ -179,15 +168,61 @@ function PassBodyAs(type) {
 
             } else {
                 return (req, res) => {
-                    try{
+                    try {
                         return actualHandler(...args, as(req.body, type))(req, res);
-                    }catch(e){
+                    } catch (e) {
                         reply(res, e.status || 500, e.message || e)
                     }
                 }
             }
         }
     }
+}
+
+function PassBodyAs(type) {
+    return (actualHandler) => {
+        return (...args) => {
+            if (isRequstHandlerArgs(args)) {
+                const req = args.at(-3); const res = args.at(-2);
+                try {
+                    return actualHandler(asStrict(req.body, type))(req, res);
+                } catch (e) {
+                    reply(res, e.status || 500, e.message || e);
+                }
+
+            } else {
+                return (req, res) => {
+                    try {
+                        return actualHandler(...args, asStrict(req.body, type))(req, res);
+                    } catch (e) {
+                        reply(res, e.status || 500, e.message || e)
+                    }
+                }
+            }
+        }
+    }
+}
+
+function PassBody(actualHandler) {
+        return (...args) => {
+            if (isRequstHandlerArgs(args)) {
+                const req = args.at(-3); const res = args.at(-2);
+                try {
+                    return actualHandler(req.body)(req, res);
+                } catch (e) {
+                    reply(res, e.status || 500, e.message || e);
+                }
+
+            } else {
+                return (req, res) => {
+                    try {
+                        return actualHandler(...args, req.body)(req, res);
+                    } catch (e) {
+                        reply(res, e.status || 500, e.message || e)
+                    }
+                }
+            }
+        }
 }
 
 function PassRequest(actualHandler) {
@@ -249,6 +284,7 @@ module.exports = {
     PassCookies,
     PassBody,
     PassBodyAs,
+    ParseBodyAs,
     PassRequest,
     PassResponse
 }
