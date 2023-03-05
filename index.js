@@ -155,7 +155,7 @@ function PassAllQueries(actualHandler) {
     }
 }
 
-function ParseBody(type) {
+function ParseBodyAs(type) {
     return (actualHandler) => {
         return (...args) => {
             if (isRequstHandlerArgs(args)) {
@@ -179,7 +179,7 @@ function ParseBody(type) {
     }
 }
 
-function PassBody(type) {
+function PassBodyAs(type) {
     return (actualHandler) => {
         return (...args) => {
             if (isRequstHandlerArgs(args)) {
@@ -201,6 +201,28 @@ function PassBody(type) {
             }
         }
     }
+}
+
+function PassBody(actualHandler) {
+        return (...args) => {
+            if (isRequstHandlerArgs(args)) {
+                const req = args.at(-3); const res = args.at(-2);
+                try {
+                    return actualHandler(req.body)(req, res);
+                } catch (e) {
+                    reply(res, e.status || 500, e.message || e);
+                }
+
+            } else {
+                return (req, res) => {
+                    try {
+                        return actualHandler(...args, req.body)(req, res);
+                    } catch (e) {
+                        reply(res, e.status || 500, e.message || e)
+                    }
+                }
+            }
+        }
 }
 
 function PassRequest(actualHandler) {
@@ -261,7 +283,8 @@ module.exports = {
     PassAllCookies,
     PassCookies,
     PassBody,
-    ParseBody,
+    PassBodyAs,
+    ParseBodyAs,
     PassRequest,
     PassResponse
 }
