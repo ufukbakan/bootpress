@@ -4,16 +4,17 @@ import { ArraySchema, JsSchema, ValidTypeKeys } from "./helpers"
 type RequestHandler = (req: Request, res: Response) => void
 type RequsetHandlerWithArgs = (...args: any[]) => RequestHandler
 
-type RestedService<T extends Record<string, any>> = { [K in keyof T]:
+type RestedService<T extends Record<PropertyKey, any>> = { [K in keyof T]:
     T[K] extends Function
     ? (...args: Parameters<T[K]>) => RequestHandler
     : T[K]
 }
 
-declare function RestService<T extends Record<string, any>>(clazz: new () => T): RestedService<T>;
-declare function RestService<T extends Record<string, any>>(service: T): RestedService<T>;
+type InstanceOrClass<T extends Record<PropertyKey, any>> = T | (new () => T);
+
+declare function RestService<T extends Record<PropertyKey, any>>(service: InstanceOrClass<T>): RestedService<T>;
 declare function RestMethod<T>(callback: () => T): RequestHandler;
-declare function Restify(target: any, key: string, desc: PropertyDescriptor): PropertyDescriptor;
+declare function Restify(target: any, key: PropertyKey, desc: PropertyDescriptor): PropertyDescriptor;
 
 declare function PassBody(serviceFunction: RequestHandler | RequsetHandlerWithArgs): RequestHandler
 declare function ParseBodyAs(type: ValidTypeKeys | JsSchema | ArraySchema ): (serviceFunction: RequestHandler | RequsetHandlerWithArgs) => RequestHandler
