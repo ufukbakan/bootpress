@@ -30,7 +30,7 @@ type TypedSchema<T> = {
     : (T[key] extends ValidTypeKeys ? ValOf<T[key]> : T[key] extends ArraySchema ? TypedSchema<T[key][0]>[] : TypedSchema<T[key]>)
 }
 
-export function getOrThrow<T, E extends HttpError>(data: T, error: E): T;
+export function getOrThrow<T, K extends NonNullable<T>, E extends HttpError>(data: T, error: E): K;
 export function getOrElse<T, E>(data: T, defaultValue: E): E extends NonNullable<infer T> ? E : T | E;
 export function schema<T extends JsSchema>(schema: T): T;
 
