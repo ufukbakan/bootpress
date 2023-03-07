@@ -4,10 +4,16 @@
 <p align=center>Express but Spring Boot like</p>
 
 ## Quick Start
-Recommended tool: [create-bootpress-app](https://www.npmjs.com/package/create-bootpress-app)
+Recommended tool: **[create-bootpress-app](https://www.npmjs.com/package/create-bootpress-app)**
+___
 
 ## Methods
-### **<u>RestService</u>**: Converts all methods to Express RequestHandlers
+### **<u>RestService</u>**: Converts all methods to Express RequestHandlers.
+Http Response Status will inherit status field of returned value by method or 200 by default.
+
+Http Response Body will be mapped to 'data' field or value itself by default.
+
+If you want to explicitly specify a field named 'data' or 'status' it's recommended to encapsulate your value with HttpResponse class.
 #### Basic usage:
 ```ts
 import express from "express";
@@ -128,6 +134,92 @@ const LogService = new LogServiceImpl();
 
 app.get("/logs", LogService.findAll() as RequestHandler)
 ```
+
+### **Argument Passers**
+
+```PassBody(serviceFunction)``` -> Passes body to service function without any validation
+
+```ParseBodyAs(type)(serviceFunction)``` -> Parses body to specified type then passes it to service function
+
+```PassBodyAs(type)(serviceFunction)``` -> Validates body with provided type and passes it to service function
+
+```PassAllParams(serviceFunction)``` -> Passes all path parameters to service function as a Record<string, string> (pure js object that contains key-value pairs)
+
+```PassAllQueries(serviceFunction)``` -> Passes query to service function as Record<string, string>
+
+```PassAllCookies(serviceFunction)``` -> Passes cookies to service function as Record<string, string>
+
+```PassParams(...paramNames)(serviceFunction)``` -> Passes specified parameters as arguments to service function
+
+```PassQueries(...queryNames)(serviceFunction)``` -> Passes specified queries as arguments to service function
+
+```PassCookies(...cookieNames)(serviceFunction)``` -> Passes specified cookies as arguments to service function
+
+```PassRequest(serviceFunction)``` -> Passes express request object to service function
+
+```PassResponse(serviceFunction)``` -> Passes express response object to service function
+
+### Chaining argument passers:
+Argument passers can be chained by passing result of one as serviceFunction parameter to other. e.g.:
+```ts
+// in rest service class:
+function serviceFunction(cookies, body){
+    ...
+}
+// in router:
+router.post("/", PassAllCookies( PassBodyAs(yourSchema)(restService.serviceFunction) ));
+```
+
+
+## Helper Methods
+
+### **getOrThrow(value, httpError)**
+Returns the value back if it's not null, undefined or empty array.
+### **getOrElse(value, defaultValue)**
+Returns the value if it's not null or undefined otherwise returns the default value.
+### **schema(object)**
+Helps you to define a JS Schema.
+### **as(any, string | object | array)**
+Tries to parse any value to provided type.
+
+If type of provided type is string then it's a primitive key and valid values are:
+```
+"string"
+"string[]"
+"boolean"
+"boolean[]"
+"number"
+"number[]"
+"integer"
+"integer[]"
+"string?"
+"string[]?"
+"boolean?"
+"boolean[]?"
+"number?"
+"number[]?"
+"integer?"
+"integer[]?"
+```
+If typeof provided type is object then it's a JS Schema and structure must follow:
+```
+{
+    "property": string | object | array // Nullable primitives not allowed here instead use question mark end of the property key
+    "nullableProperty?": string | object | array
+}
+```
+
+If typeof provided type is an array the structure must follow: 
+```
+[
+    yourJsSchemaObject
+]
+```
+There must be only one element in an array schema which defines ````ArrayOf<Schema>````
+### **asStrict(any, string | object | array)**
+Same as 'as' method but doesn't try to parse different types instead throws error.
+
+
 ## v7.1.0 Release Notes:
 - getOrThrow: Throws specified error when value is an empty array too.
 ## v7.0.0 Release Notes:
