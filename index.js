@@ -28,48 +28,57 @@ function RestService(service) {
         ...Object.getOwnPropertyDescriptors(service),
         ...Object.getOwnPropertyDescriptors(service.__proto__ || {})
     };
-    const alteredDescriptors = Object.fromEntries(Object.entries(descriptors).filter(keyvalue => !protectedProperties.includes(keyvalue[0])).map(keyvalue => {
+    const newService = {};
+    Object.entries(descriptors).filter(keyvalue => !protectedProperties.includes(keyvalue[0])).forEach(keyvalue => {
         const propertyName = keyvalue[0];
         const value = keyvalue[1].value;
         if (typeof value == "function" && !propertyName.startsWith("#")) {
-            return [
-                propertyName,
-                {
-                    value: ((...args) =>
-                        (req, res) => {
-                            try {
-                                const result = value.bind(service)(...args);
-                                if (result === undefined) {
-                                    throw new HttpError(200, "Your method is executed but it returned undefined. Please avoid using 'void' methods as service methods.");
-                                } else if (result === null) {
-                                    throw new HttpError(200, "Your method is executed but it returned null. At least a value is expected to be returned.");
-                                }
-                                reply(res, result.status || 200, result.data || result)
-                            } catch (e) {
-                                reply(res, e.status || 500, e.message || e);
-                            }
-                        }),
-                    configurable: keyvalue[1].configurable,
-                    writable: keyvalue[1].writable,
-                    enumerable: false
-                }
-            ]
+            newService[propertyName] = ((...args) =>
+                (req, res) => {
+                    try {
+                        const result = service[propertyName](...args);
+                        if (result == undefined) {
+                            reply(res, 204, null);
+                        }
+                        else if (result instanceof Promise) {
+                            result.then(r => {
+                                reply(res, r.status ?? 200, r.data ?? r);
+                            }).catch(e => {
+                                reply(res, e.status ?? 500, e.message ?? e);
+                            })
+                        }
+                        else {
+                            reply(res, result.status ?? 200, result.data ?? result)
+                        }
+                    } catch (e) {
+                        reply(res, e.status ?? 500, e.message ?? e);
+                    }
+                });
         } else {
-            return keyvalue;
+            newService[propertyName] = service[propertyName];
         }
-    }));
-    Object.defineProperties(service, alteredDescriptors);
-    return service;
+    })
+    return newService;
 }
 
 function RestMethod(callback) {
     return (req, res) => {
         try {
             const result = callback();
-            reply(res, result.status || 200, result.data || result);
-            return result;
+            if (result == undefined) {
+                reply(res, 204, null);
+            }
+            else if (result instanceof Promise) {
+                result.then(r => {
+                    reply(res, r.status ?? 200, r.data ?? r);
+                }).catch(e => {
+                    reply(res, e.status ?? 500, e.message ?? e);
+                })
+            } else {
+                reply(res, result.status ?? 200, result.data ?? result);
+            }
         } catch (e) {
-            reply(res, e.status || 500, e.message || e)
+            reply(res, e.status ?? 500, e.message ?? e)
         }
     }
 }
@@ -82,10 +91,20 @@ function Restify(target, key, desc) {
             return (req, res) => {
                 try {
                     const result = oldFunc(...args);
-                    reply(res, result.status || 200, result.data || result);
-                    return result;
+                    if (result == undefined) {
+                        reply(res, 204, null);
+                    }
+                    else if (result instanceof Promise) {
+                        result.then(r => {
+                            reply(res, r.status ?? 200, r.data ?? r);
+                        }).catch(e => {
+                            reply(res, e.status ?? 500, e.message ?? e);
+                        })
+                    } else {
+                        reply(res, result.status ?? 200, result.data ?? result);
+                    }
                 } catch (e) {
-                    reply(res, e.status || 500, e.message || e);
+                    reply(res, e.status ?? 500, e.message ?? e);
                 }
             }
         }).bind(target)
@@ -204,25 +223,25 @@ function PassBodyAs(type) {
 }
 
 function PassBody(actualHandler) {
-        return (...args) => {
-            if (isRequstHandlerArgs(args)) {
-                const req = args.at(-3); const res = args.at(-2);
-                try {
-                    return actualHandler(req.body)(req, res);
-                } catch (e) {
-                    reply(res, e.status || 500, e.message || e);
-                }
+    return (...args) => {
+        if (isRequstHandlerArgs(args)) {
+            const req = args.at(-3); const res = args.at(-2);
+            try {
+                return actualHandler(req.body)(req, res);
+            } catch (e) {
+                reply(res, e.status || 500, e.message || e);
+            }
 
-            } else {
-                return (req, res) => {
-                    try {
-                        return actualHandler(...args, req.body)(req, res);
-                    } catch (e) {
-                        reply(res, e.status || 500, e.message || e)
-                    }
+        } else {
+            return (req, res) => {
+                try {
+                    return actualHandler(...args, req.body)(req, res);
+                } catch (e) {
+                    reply(res, e.status || 500, e.message || e)
                 }
             }
         }
+    }
 }
 
 function PassRequest(actualHandler) {

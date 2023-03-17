@@ -219,6 +219,10 @@ There must be only one element in an array schema which defines ````ArrayOf<Sche
 ### **asStrict(any, string | object | array)**
 Same as 'as' method but doesn't try to parse different types instead throws error.
 
+## v8.0.0 Release Notes:
+- Added support for async service functions. (You don't need to await if you wrapped your service with Bootpress functions)
+- Bugfix for falsy response values
+- Simplified implementation
 
 ## v7.1.0 Release Notes:
 - getOrThrow: Throws specified error when value is an empty array too.
