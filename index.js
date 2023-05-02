@@ -127,12 +127,12 @@ function isRequstHandlerArgs(args) {
 function PassParam(paramName) {
     return (actualHandler) => {
         return (...args) => {
-            const paramToPass = req.params[paramName];
             if (isRequstHandlerArgs(args)) {
                 const req = args.at(-3); const res = args.at(-2);
+                const paramToPass = req.params[paramName];
                 return actualHandler(paramToPass)(req, res);
             } else {
-                return (req, res) => actualHandler(...args, paramToPass)(req, res);
+                return (req, res) => { const paramToPass = req.params[paramName]; actualHandler(...args, paramToPass)(req, res); };
             }
         }
     }
@@ -141,12 +141,12 @@ function PassParam(paramName) {
 function PassQuery(searchQuery) {
     return (actualHandler) => {
         return (...args) => {
-            const paramToPass = req.query[searchQuery];
             if (isRequstHandlerArgs(args)) {
                 const req = args.at(-3); const res = args.at(-2);
+                const paramToPass = req.query[searchQuery];
                 return actualHandler(paramToPass)(req, res);
             } else {
-                return (req, res) => actualHandler(...args, paramToPass)(req, res);
+                return (req, res) => { const paramToPass = req.query[searchQuery]; actualHandler(...args, paramToPass)(req, res); };
             }
         }
     }
@@ -280,12 +280,12 @@ function PassAllCookies(actualHandler) {
 function PassCookie(cookieName) {
     return (actualHandler) => {
         return (...args) => {
-            const cookie = req.cookies[cookieName];
             if (isRequstHandlerArgs(args)) {
                 const req = args.at(-3); const res = args.at(-2);
+                const cookie = req.cookies[cookieName];
                 return actualHandler(cookie)(req, res);
             } else {
-                return (req, res) => actualHandler(...args, cookie)(req, res);
+                return (req, res) => { const cookie = req.cookies[cookieName]; actualHandler(...args, cookie)(req, res); };
             }
         }
     }
