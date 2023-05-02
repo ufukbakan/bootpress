@@ -17,7 +17,7 @@ If you want to explicitly specify a field named 'data' or 'status' it's recommen
 #### Basic usage:
 ```ts
 import express from "express";
-import { HttpError, PassParams, RestService } from "bootpress";
+import { HttpError, PassParam, RestService } from "bootpress";
 import { as, getOrThrow } from "bootpress/helpers";
 
 const app = express();
@@ -28,7 +28,7 @@ const UserServiceImpl = {
     findAllUsers(): number[] {
         return this.users;
     },
-    findUserById(idInParams: string) {
+    findUserById(idInParams: string | undefined) {
         const id = as(idInParams, "integer");
         return getOrThrow(this.users.find(user => user === id), new HttpError(404, "Not Found"));
     }
@@ -37,12 +37,12 @@ const UserServiceImpl = {
 const UserService = RestService(UserServiceImpl);
 
 app.get("/users", UserService.findAllUsers());
-app.get("/users/:id", PassParams("id")(UserService.findUserById));
+app.get("/users/:id", PassParam("id")(UserService.findUserById));
 ```
 
 #### Advanced usage:
 ```ts
-import { HttpError, HttpResponse, PassBody, PassParams, PassQueries, RestService } from "bootpress";
+import { HttpError, HttpResponse, PassBody, PassParam, PassQuery, RestService } from "bootpress";
 import { as, asStrict, getOrThrow } from "bootpress/helpers";
 
 class PostServiceImpl {
@@ -60,7 +60,7 @@ class PostServiceImpl {
         this.posts.push(casted.id);
         return new HttpResponse(201, casted.id);
     }
-    delete(deleteInQuery: string, idInQuery: string) {
+    delete(deleteInQuery: string | undefined, idInQuery: string | undefined) {
         const idx = deleteInQuery === "yes" ? this.posts.indexOf(as(idInQuery, "integer")) : -1;
         if (idx > -1) {
             this.#logDeleted(idInQuery);
@@ -84,8 +84,8 @@ const PostService = RestService(PostServiceImpl);
 
 app.get("/posts", PostService.findAll())
 app.post("/posts", PassBody(PostService.add));
-app.delete("/posts", PassQueries("delete", "id")(PostService.delete));
-app.get("/posts/:id", PassParams("id")(PostService.findById));
+app.delete("/posts", PassQuery("delete")(PassQuery("id")(PostService.delete)));
+app.get("/posts/:id", PassParam("id")(PostService.findById));
 ```
 
 ### **<u>RestMethod</u>**: Converts single method to RequestHandler
@@ -149,11 +149,11 @@ app.get("/logs", LogService.findAll() as RequestHandler)
 
 ```PassAllCookies(serviceFunction)``` -> Passes cookies to service function as Record<string, string>
 
-```PassParams(...paramNames)(serviceFunction)``` -> Passes specified parameters as arguments to service function
+```PassParam(pathParam)(serviceFunction)``` -> Passes specified parameter as arguments to service function
 
-```PassQueries(...queryNames)(serviceFunction)``` -> Passes specified queries as arguments to service function
+```PassQuery(searchQueryName)(serviceFunction)``` -> Passes specified query as arguments to service function
 
-```PassCookies(...cookieNames)(serviceFunction)``` -> Passes specified cookies as arguments to service function
+```PassCookie(cookieName)(serviceFunction)``` -> Passes specified cookie as arguments to service function
 
 ```PassRequest(serviceFunction)``` -> Passes express request object to service function
 
@@ -218,6 +218,15 @@ If typeof provided type is an array the structure must follow:
 There must be only one element in an array schema which defines ````ArrayOf<Schema>````
 ### **asStrict(any, string | object | array)**
 Same as 'as' method but doesn't try to parse different types instead throws error.
+
+## v9.0.0 Release Notes:
+- New Feature:
+  - Type checking for each argument while passing arguments to service methods
+- Deprecated:
+  - PassQueries, PassCookies, PassParams
+  - Please use PassAllQueries, PassAllCookies or PassAllParams
+- Added:
+  - PassQuery, PassCookie, PassParam
 
 ## v8.0.0 Release Notes:
 - Added support for async service functions. (You don't need to await if you wrapped your service with Bootpress functions)

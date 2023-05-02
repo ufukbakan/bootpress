@@ -1,6 +1,6 @@
 {
   "name": "bootpress",
-  "version": "8.0.1",
+  "version": "9.0.0-canary.0",
   "description": "REST service methods for express",
   "main": "index.js",
   "repository": {
