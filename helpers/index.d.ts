@@ -32,7 +32,7 @@ type TypedSchema<T> = {
 
 export function getOrThrow<T, K extends NonNullable<T>, E extends HttpError>(data: T, error: E): K;
 export function getOrElse<T, E>(data: T, defaultValue: E): E extends NonNullable<infer T> ? E : T | E;
-export function schema<T extends JsSchema>(schema: T): T;
+export function schema<T extends JsSchema>(schema: T): TypedSchema<T>;
 
 type ExtendedTypeMap = {
     "string": string,
