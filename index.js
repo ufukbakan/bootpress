@@ -42,7 +42,11 @@ function RestService(service) {
                         }
                         else if (result instanceof Promise) {
                             result.then(r => {
-                                reply(res, r.status ?? 200, r.data ?? r);
+                                if (r == undefined) {
+                                    reply(res, 204, null);
+                                } else {
+                                    reply(res, r.status ?? 200, r.data ?? r);
+                                }
                             }).catch(e => {
                                 reply(res, e.status ?? 500, e.message ?? e);
                             })
@@ -70,7 +74,11 @@ function RestMethod(callback) {
             }
             else if (result instanceof Promise) {
                 result.then(r => {
-                    reply(res, r.status ?? 200, r.data ?? r);
+                    if (r == undefined) {
+                        reply(res, 204, undefined);
+                    } else {
+                        reply(res, r.status ?? 200, r.data ?? r);
+                    }
                 }).catch(e => {
                     reply(res, e.status ?? 500, e.message ?? e);
                 })
@@ -96,7 +104,11 @@ function Restify(target, key, desc) {
                     }
                     else if (result instanceof Promise) {
                         result.then(r => {
-                            reply(res, r.status ?? 200, r.data ?? r);
+                            if (r == undefined) {
+                                reply(res, 204, null);
+                            } else {
+                                reply(res, r.status ?? 200, r.data ?? r);
+                            }
                         }).catch(e => {
                             reply(res, e.status ?? 500, e.message ?? e);
                         })

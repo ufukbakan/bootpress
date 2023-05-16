@@ -219,7 +219,15 @@ There must be only one element in an array schema which defines ````ArrayOf<Sche
 ### **asStrict(any, string | object | array)**
 Same as 'as' method but doesn't try to parse different types instead throws error.
 
-## v9.0.0 Release Notes:
+# Release Notes
+
+## v9.0.2:
+- Added support for null/undefined returning async functions
+
+## v9.0.1:
+- Fixed errors in argument passers
+
+## v9.0.0:
 - New Feature:
   - Type checking for each argument while passing arguments to service methods
 - Deprecated:
@@ -228,14 +236,14 @@ Same as 'as' method but doesn't try to parse different types instead throws erro
 - Added:
   - PassQuery, PassCookie, PassParam
 
-## v8.0.0 Release Notes:
+## v8.0.0:
 - Added support for async service functions. (You don't need to await if you wrapped your service with Bootpress functions)
 - Bugfix for falsy response values
 - Simplified implementation
 
-## v7.1.0 Release Notes:
+## v7.1.0:
 - getOrThrow: Throws specified error when value is an empty array too.
-## v7.0.0 Release Notes:
+## v7.0.0:
 
 ### Deprecated helper methods:
 - asSchema
