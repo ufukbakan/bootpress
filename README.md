@@ -225,6 +225,10 @@ Same as 'as' method but doesn't try to parse different types instead throws erro
 
 # Release Notes
 
+## v9.1.0:
+- Fixed chained argument type error bugs
+- Improvements in argument passer type declarations
+
 ## v9.0.2:
 - Added support for null/undefined returning async functions
 
