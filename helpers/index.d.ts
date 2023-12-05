@@ -21,6 +21,7 @@ type JsSchema = {
 }
 
 type ArraySchema = [JsSchema]
+type TypedArraySchema<A extends ArraySchema> = TypedSchema<A[0]>
 
 type RemoveQuestionMark<T extends string> = T extends `${infer Prefix}?` ? Prefix : T;
 
