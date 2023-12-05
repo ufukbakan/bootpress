@@ -61,13 +61,17 @@ class PostServiceImpl {
         return new HttpResponse(201, casted.id);
     }
     delete(deleteInQuery: string | undefined, idInQuery: string | undefined) {
-        const idx = deleteInQuery === "yes" ? this.posts.indexOf(as(idInQuery, "integer")) : -1;
-        if (idx > -1) {
-            this.#logDeleted(idInQuery);
-            return this.posts.splice(idx, 1);
-        }else {
-            throw new HttpError(404, "Post is not found")
+        if (deleteInQuery === "yes") {
+            const id = as(idInQuery, "integer");
+            const index = this.posts.indexOf(id);
+            if (index > -1) {
+                this.#logDeleted(idInQuery!);
+                return this.posts.splice(index, 1);
+            } else {
+                throw new HttpError(404, "Post is not found")
+            }
         }
+        throw new HttpError(400, "Bad Request");
     }
     // use private methods to  
     #logDeleted(id: number | string) {
