@@ -1,5 +1,4 @@
-const { as, asStrict } = require("./helpers");
-const { HttpError } = require("./types");
+const { as, asStrict, log } = require("./helpers");
 
 const protectedProperties = [
     "toString",
@@ -48,14 +47,18 @@ function RestService(service) {
                                     reply(res, r.status ?? 200, r.data ?? r);
                                 }
                             }).catch(e => {
-                                reply(res, e.status ?? 500, e.message ?? e);
+                                const status = e.status ?? 500;
+                                status === 500 && log.error(e.stack);
+                                reply(res, status, e.message ?? e);
                             })
                         }
                         else {
                             reply(res, result.status ?? 200, result.data ?? result)
                         }
                     } catch (e) {
-                        reply(res, e.status ?? 500, e.message ?? e);
+                        const status = e.status ?? 500;
+                        status === 500 && log.error(e.stack);
+                        reply(res, status, e.message ?? e);
                     }
                 });
         } else {
@@ -80,13 +83,17 @@ function RestMethod(callback) {
                         reply(res, r.status ?? 200, r.data ?? r);
                     }
                 }).catch(e => {
-                    reply(res, e.status ?? 500, e.message ?? e);
+                    const status = e.status ?? 500;
+                    status === 500 && log.error(e.stack);
+                    reply(res, status, e.message ?? e);
                 })
             } else {
                 reply(res, result.status ?? 200, result.data ?? result);
             }
         } catch (e) {
-            reply(res, e.status ?? 500, e.message ?? e)
+            const status = e.status ?? 500;
+            status === 500 && log.error(e.stack);
+            reply(res, status, e.message ?? e)
         }
     }
 }
@@ -110,13 +117,17 @@ function Restify(target, key, desc) {
                                 reply(res, r.status ?? 200, r.data ?? r);
                             }
                         }).catch(e => {
-                            reply(res, e.status ?? 500, e.message ?? e);
+                            const status = e.status ?? 500;
+                            status === 500 && log.error(e.stack);
+                            reply(res, status, e.message ?? e);
                         })
                     } else {
                         reply(res, result.status ?? 200, result.data ?? result);
                     }
                 } catch (e) {
-                    reply(res, e.status ?? 500, e.message ?? e);
+                    const status = e.status ?? 500;
+                    status === 500 && log.error(e.stack);
+                    reply(res, status, e.message ?? e);
                 }
             }
         }).bind(target)
@@ -132,7 +143,7 @@ function isRequest(o) {
 }
 
 function isRequstHandlerArgs(args) {
-    const [last1, last2, last3, ...others] = [...args].reverse();
+    const [_last1, last2, last3, ..._others] = [...args].reverse();
     return isResponse(last2) && isRequest(last3);
 }
 
@@ -186,23 +197,27 @@ function PassAllQueries(actualHandler) {
     }
 }
 
-function ParseBodyAs(type) {
+function ParseBodyAs(type, config = { messageTemplate: "Malformed Request Body\n{0}" }) {
     return (actualHandler) => {
         return (...args) => {
             if (isRequstHandlerArgs(args)) {
                 const req = args.at(-3); const res = args.at(-2);
                 try {
-                    return actualHandler(as(req.body, type))(req, res);
+                    return actualHandler(as(req.body, type, config))(req, res);
                 } catch (e) {
-                    reply(res, e.status || 500, e.message || e);
+                    const status = e.status ?? 500;
+                    status === 500 && log.error(e.stack);
+                    reply(res, status, e.message || e);
                 }
 
             } else {
                 return (req, res) => {
                     try {
-                        return actualHandler(...args, as(req.body, type))(req, res);
+                        return actualHandler(...args, as(req.body, type, config))(req, res);
                     } catch (e) {
-                        reply(res, e.status || 500, e.message || e)
+                        const status = e.status ?? 500;
+                        status === 500 && log.error(e.stack);
+                        reply(res, status, e.message || e)
                     }
                 }
             }
@@ -210,23 +225,27 @@ function ParseBodyAs(type) {
     }
 }
 
-function PassBodyAs(type) {
+function PassBodyAs(type, config = { messageTemplate: "Malformed Request Body\n{0}" }) {
     return (actualHandler) => {
         return (...args) => {
             if (isRequstHandlerArgs(args)) {
                 const req = args.at(-3); const res = args.at(-2);
                 try {
-                    return actualHandler(asStrict(req.body, type))(req, res);
+                    return actualHandler(asStrict(req.body, type, config))(req, res);
                 } catch (e) {
-                    reply(res, e.status || 500, e.message || e);
+                    const status = e.status ?? 500;
+                    status === 500 && log.error(e.stack);
+                    reply(res, status, e.message || e);
                 }
 
             } else {
                 return (req, res) => {
                     try {
-                        return actualHandler(...args, asStrict(req.body, type))(req, res);
+                        return actualHandler(...args, asStrict(req.body, type, config))(req, res);
                     } catch (e) {
-                        reply(res, e.status || 500, e.message || e)
+                        const status = e.status ?? 500;
+                        status === 500 && log.error(e.stack);
+                        reply(res, status, e.message || e)
                     }
                 }
             }
@@ -241,7 +260,9 @@ function PassBody(actualHandler) {
             try {
                 return actualHandler(req.body)(req, res);
             } catch (e) {
-                reply(res, e.status || 500, e.message || e);
+                const status = e.status ?? 500;
+                status === 500 && log.error(e.stack);
+                reply(res, status, e.message || e);
             }
 
         } else {
@@ -249,7 +270,9 @@ function PassBody(actualHandler) {
                 try {
                     return actualHandler(...args, req.body)(req, res);
                 } catch (e) {
-                    reply(res, e.status || 500, e.message || e)
+                    const status = e.status ?? 500;
+                    status === 500 && log.error(e.stack);
+                    reply(res, status, e.message || e)
                 }
             }
         }
