@@ -1,5 +1,5 @@
 <h1 align="center" style="margin-bottom: 0" >
-<img src="https://raw.githubusercontent.com/ufukbakan/bootpress/main/bootpress.svg" height=120 alt="bootpress">
+<img src="https://raw.githubusercontent.com/ufukbakan/bootpress/main/bootpress.svg" width=500 alt="bootpress">
 </h1>
 <p align=center>Express but Spring Boot like</p>
 
@@ -143,9 +143,9 @@ app.get("/logs", LogService.findAll() as RequestHandler)
 
 ```PassBody(serviceFunction)``` -> Passes body to service function without any validation
 
-```ParseBodyAs(type)(serviceFunction)``` -> Parses body to specified type then passes it to service function
+```ParseBodyAs(type, config?)(serviceFunction)``` -> Parses body to specified type then passes it to service function. Config object is optional and has messageTemplate field which represents a string with details placeholder: ```{0}```
 
-```PassBodyAs(type)(serviceFunction)``` -> Validates body with provided type and passes it to service function
+```PassBodyAs(type, config?)(serviceFunction)``` -> Validates body with provided type and passes it to service function. Config object is optional and has messageTemplate field which represents a string with details placeholder: ```{0}```
 
 ```PassAllParams(serviceFunction)``` -> Passes all path parameters to service function as a Record<string, string> (pure js object that contains key-value pairs)
 
@@ -183,11 +183,11 @@ Returns the value back if it's not null, undefined or empty array.
 Returns the value if it's not null or undefined otherwise returns the default value.
 ### **schema(object)**
 Helps you to define a JS Schema.
-### **as(any, string | object | array)**
-Tries to parse any value to provided type.
-
+### **as(target: any, [type: string | object | array](#type-paramter-for-as--asstrict-methods), [config? object](#config-object-optional-for-as--asstrict-methods))**
+Tries to parse target value to provided type.
+#### Type paramter (for as & asStrict methods)
 If type of provided type is string then it's a primitive key and valid values are:
-```
+```ts
 "string"
 "string[]"
 "boolean"
@@ -206,24 +206,38 @@ If type of provided type is string then it's a primitive key and valid values ar
 "integer[]?"
 ```
 If typeof provided type is object then it's a JS Schema and structure must follow:
-```
+```ts
 {
-    "property": string | object | array // Nullable primitives not allowed here instead use question mark end of the property key
-    "nullableProperty?": string | object | array
+    "property": string | object | Array // Nullable primitives not allowed here instead use question mark end of the property key
+    "nullableProperty?": string | object | Array
 }
 ```
 
 If typeof provided type is an array the structure must follow: 
-```
+```ts
 [
     yourJsSchemaObject
 ]
 ```
 There must be only one element in an array schema which defines ````ArrayOf<Schema>````
-### **asStrict(any, string | object | array)**
+#### Config object (optional for as & asStrict methods)
+Config object is optional and structure follows:
+```ts
+{
+    errorVariableName: string | undefined, // variable name in the error message
+    messageTemplate: string | undefined // default values is "{0}" where it directly writes error details.
+    // an messageTemplate example is: "Parse error:\n{0}"
+}
+```
+### **asStrict(target: any, [type: string | object | array](#type-parameter), [config? object](#config-object-optional-for-as--asstrict-methods))**
 Same as 'as' method but doesn't try to parse different types instead throws error.
 
 # Release Notes
+
+## v10.0.0:
+- Configuration support for as, asStrict, passBodyAs and parseBodyAs methods.
+- Integrated logger. (Changeable via setLogger method)
+- 500 server errors are logged with error level.
 
 ## v9.1.0:
 - Fixed chained argument type error bugs
