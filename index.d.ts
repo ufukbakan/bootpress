@@ -19,8 +19,9 @@ type RestedService<T extends Record<PropertyKey, any>> = {
 
 type InstanceOrClass<T extends Record<PropertyKey, any>> = T | (new () => T);
 
-type TypeValueOf<S extends ExtendedTypeKeys | JsSchema | ArraySchema> =
-    S extends ExtendedTypeKeys ? ExtValOf<S>
+type TypeValueOf<S extends ExtendedTypeKeys | JsSchema | TypedSchema<JsSchema> | ArraySchema> =
+    S extends TypedSchema<JsSchema> ? S
+    : S extends ExtendedTypeKeys ? ExtValOf<S>
     : S extends JsSchema ? TypedSchema<S>
     : S extends ArraySchema ? TypedArraySchema<S>
     : never;
@@ -30,8 +31,8 @@ declare function RestMethod<T>(callback: () => T): RequestHandler;
 declare function Restify(target: any, key: PropertyKey, desc: PropertyDescriptor): PropertyDescriptor;
 
 declare function PassBody<F extends RequsetHandlerWithLastArg<any>>(serviceFunction: F): ShiftRequestHandler<F>
-declare function ParseBodyAs<S extends ExtendedTypeKeys | JsSchema | ArraySchema, T = TypeValueOf<S>>(type: S, config?: ErrorTemplateConfiguration): <F extends RequsetHandlerWithLastArg<T>>(serviceFunction: F) => ShiftRequestHandler<F>
-declare function PassBodyAs<S extends ExtendedTypeKeys | JsSchema | ArraySchema, T = TypeValueOf<S>>(type: S, config?: ErrorTemplateConfiguration): <F extends RequsetHandlerWithLastArg<T>>(serviceFunction: F) => ShiftRequestHandler<F>
+declare function ParseBodyAs<S extends ExtendedTypeKeys | JsSchema | TypedSchema<JsSchema> | ArraySchema, T = TypeValueOf<S>>(type: S, config?: ErrorTemplateConfiguration): <F extends RequsetHandlerWithLastArg<T>>(serviceFunction: F) => ShiftRequestHandler<F>
+declare function PassBodyAs<S extends ExtendedTypeKeys | JsSchema | TypedSchema<JsSchema> | ArraySchema, T = TypeValueOf<S>>(type: S, config?: ErrorTemplateConfiguration): <F extends RequsetHandlerWithLastArg<T>>(serviceFunction: F) => ShiftRequestHandler<F>
 declare function PassAllParams<F extends RequsetHandlerWithLastArg<string[]>>(serviceFunction: F): ShiftRequestHandler<F>
 declare function PassAllQueries<F extends RequsetHandlerWithLastArg<string[]>>(serviceFunction: F): ShiftRequestHandler<F>
 declare function PassAllCookies<F extends RequsetHandlerWithLastArg<string[]>>(serviceFunction: F): ShiftRequestHandler<F>
