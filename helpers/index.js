@@ -1,6 +1,41 @@
 const { HttpError } = require("../types");
 
 const allowedPrimitives = ["string", "number", "boolean", "integer"];
+/**
+ * For both getter & setter
+ * 
+ * Any logger with Log4J interface can be usable. (e.g. Pino)
+ * 
+ */
+let _logger = {
+    fatal: (message) => console.error(message),
+    error: (message) => console.error(message),
+    warn: (message) => console.warn(message),
+    info: (message) => console.log(message),
+    debug: (message) => console.log(message),
+    trace: (message) => console.log(message),
+};
+
+const log = {
+    fatal: (message) => _logger.fatal(message),
+    error: (message) => _logger.error(message),
+    warn: (message) => _logger.warn(message),
+    info: (message) => _logger.info(message),
+    debug: (message) => _logger.debug(message),
+    trace: (message) => _logger.trace(message),
+}
+
+function setLogger(logger) {
+    _logger = logger;
+}
+
+function passStringArgs(str, ...args) {
+    let result = str;
+    for (let i = 0; i < args.length; i++) {
+        result = str.replace(`{${i}}`, args[i]);
+    }
+    return result;
+}
 
 function getOrThrow(data, error) {
     if (data === null || data === undefined || isEmptyArray(data)) {
@@ -10,7 +45,7 @@ function getOrThrow(data, error) {
     }
 }
 
-function isEmptyArray(x){
+function isEmptyArray(x) {
     return Array.isArray(x) && x.length < 1;
 }
 
@@ -83,9 +118,12 @@ function asString(o, errorMessage = undefined, errorStatus = 400) {
     }
 }
 
-function asSchema(o, schema, strict = false) {
-    if(!(schema instanceof Object) || Array.isArray(schema)){
-        throw new HttpError(500, `Schema is not valid ${JSON.stringify(schema)}`);
+function asSchema(o, schema, config = { strict: false, messageTemplate: "{0}" }) {
+    const strict = config.strict ?? false;
+    if (!(schema instanceof Object) || Array.isArray(schema)) {
+        const error = new HttpError(500, `Schema is not valid ${JSON.stringify(schema)}`);
+        _logger.error(error.stack);
+        throw error;
     }
     const schemaKeyValues = Object.entries(schema);
     let result = {};
@@ -104,17 +142,19 @@ function asSchema(o, schema, strict = false) {
             if (Array.isArray(expectedType)) {
                 result[key] = [];
                 for (let j = 0; j < o[key].length; j++) {
-                    result[key][j] = asSchema(o[key][j], expectedType[0], strict)
+                    result[key][j] = asSchema(o[key][j], expectedType[0], config)
                 }
             } else {
-                result[key] = asSchema(o[key], expectedType, strict);
+                result[key] = asSchema(o[key], expectedType, config);
             }
         }
         else if (typeof expectedType === "string") {
-            result[key] = strict ? asStrict(o[key], expectedType, key) : as(o[key], expectedType, key);
+            result[key] = strict ? asStrict(o[key], expectedType, { ...config, errorVariableName: key }) : as(o[key], expectedType, { ...config, errorVariableName: key });
         }
         else {
-            throw new HttpError(500, `Type of a schema key should be a primitive type or another schema`);
+            const error = new HttpError(500, `Type of a schema key should be a primitive type or another schema`);
+            _logger.error(error.stack);
+            throw error;
         }
     }
     return result;
@@ -125,117 +165,139 @@ function schema(schema) {
     return schema;
 }
 
-function asPrimitiveArrayOf(o, elementType) {
+function asPrimitiveArrayOf(o, elementType, config = { errorVariableName: o, messageTemplate: "{0}" }) {
+    const messageTemplate = config.messageTemplate ?? "{0}";
     if (Array.isArray(o)) {
         for (let i = 0; i < o.length; i++) {
-            o[i] = checkPrimitive(o[i], elementType, "Array elemet");
+            o[i] = checkPrimitive(o[i], elementType, config);
         }
         return o;
     } else {
-        throw new HttpError(400, `Provided object is not an array: ${JSON.stringify(o)}`)
+        throw new HttpError(400, passStringArgs(messageTemplate, `Provided object is not an array: ${JSON.stringify(o)}`))
     }
 }
 
-function as(o, type, namedErrorVariable = o) {
+function as(o, type, config = { errorVariableName: o, messageTemplate: "{0}" }) {
+    const errorVariableName = config.errorVariableName ?? o;
+    const messageTemplate = config.messageTemplate ?? "{0}";
     if (typeof type === "string") {
         if (type.endsWith("[]")) {
             // array check
             const elementType = type.replace("[]", "");
-            return asPrimitiveArrayOf(o, elementType);
+            return asPrimitiveArrayOf(o, elementType, config);
         } else { // non array types:
             if (type.endsWith("?") && o == null) {
                 return null;
             } else if (type.endsWith("?") && o != null) {
                 const actualType = type.replace("?", "");
-                return as(o, actualType, namedErrorVariable);
+                return as(o, actualType, config);
             }
             // primitive check
             switch (type) {
                 case "string":
-                    return asString(o, `Type of ${namedErrorVariable} should have been a string but it's ${o == null ? "null" : typeof o}`);
+                    return asString(o, passStringArgs(messageTemplate, `Type of ${errorVariableName} should have been a string but it's ${o == null ? "null" : typeof o}`));
                 case "number":
-                    return asNumber(o, `Type of ${namedErrorVariable} should have been a number but it's ${o == null ? "null" : typeof o}`);
+                    return asNumber(o, passStringArgs(messageTemplate, `Type of ${errorVariableName} should have been a number but it's ${o == null ? "null" : typeof o}`));
                 case "boolean":
-                    return asBoolean(o, `Type of ${namedErrorVariable} should have been a boolean but it's ${o == null ? "null" : typeof o}`);
+                    return asBoolean(o, passStringArgs(messageTemplate, `Type of ${errorVariableName} should have been a boolean but it's ${o == null ? "null" : typeof o}`));
                 case "integer":
-                    return asInteger(o, `Type of ${namedErrorVariable} should have been an integer but it's ${o == null ? "null" : typeof o}`);
+                    return asInteger(o, passStringArgs(messageTemplate, `Type of ${errorVariableName} should have been an integer but it's ${o == null ? "null" : typeof o}`));
                 default:
-                    throw new HttpError(500, `Unsupported type ${type}`);
+                    const error = new HttpError(500, `Unsupported type ${type}`);
+                    _logger.error(error.stack);
+                    throw error;
             }
         }
     } else if (typeof type === "object" && type != null) {
         if (Array.isArray(type)) {
             if (type.length > 1) {
-                throw new HttpError(500, `You can define only one schema for types ArrayOf<Schema>`);
+                const error = new HttpError(500, `You can define only one schema for types ArrayOf<Schema>`);
+                _logger.error(error.stack);
+                throw error;
             } else if (type.length < 1) {
-                throw new HttpError(500, `You must define a schema for types ArrayOf<Schema>`);
+                const error = new HttpError(500, `You must define a schema for types ArrayOf<Schema>`);
+                _logger.error(error.stack)
+                throw error;
             }
             // array schema validation
             if (!Array.isArray(o)) {
-                throw new HttpError(400, `Provided value should have been an array. (${JSON.stringify(o)})`)
+                throw new HttpError(400, passStringArgs(messageTemplate, `Provided value should have been an array. (${JSON.stringify(o)})`))
             }
             const providedSchema = type[0];
             let result = [];
             for (let i = 0; i < o.length; i++) {
-                result.push(asSchema(o[i], providedSchema));
+                result.push(asSchema(o[i], providedSchema, config));
             }
             return result;
         } else {
             // schema validation
-            return asSchema(o, type);
+            return asSchema(o, type, config);
         }
     } else {
-        throw new HttpError(500, `Unsupported type check ${type}`)
+        const error = new HttpError(500, `Unsupported type check ${type}`);
+        _logger.error(error);
+        throw error;
     }
 }
 
-function asStrict(o, type, namedErrorVariable = o) {
+function asStrict(o, type, config = { errorVariableName: o, messageTemplate: "{0}" }) {
+    const messageTemplate = config.messageTemplate ?? "{0}";
     if (typeof type === "string") {
         if (type.endsWith("[]")) {
             // array check
             const elementType = type.replace("[]", "");
-            return asPrimitiveArrayOf(o, elementType);
+            return asPrimitiveArrayOf(o, elementType, config);
         } else { // non array types:
             if (type.endsWith("?") && o == null) {
                 return null;
             } else if (type.endsWith("?") && o != null) {
                 const actualType = type.replace("?", "");
-                return asStrict(o, actualType, namedErrorVariable);
+                return asStrict(o, actualType, config);
             }
             // primitive check
             if (!allowedPrimitives.includes(type)) {
-                throw new HttpError(500, `Unsupported type ${type}`);
+                const error = new HttpError(500, `Unsupported type ${type}`);
+                _logger.error(error);
+                throw error;
             }
-            return checkPrimitive(o, type, namedErrorVariable);
+            return checkPrimitive(o, type, config);
         }
     } else if (typeof type === "object" && type != null) {
         if (Array.isArray(type)) {
             if (type.length > 1) {
-                throw new HttpError(500, `You can define only one schema for types ArrayOf<Schema>`);
+                const error = new HttpError(500, `You can define only one schema for types ArrayOf<Schema>`);
+                _logger.error(error);
+                throw error;
             } else if (type.length < 1) {
-                throw new HttpError(500, `You must define a schema for types ArrayOf<Schema>`);
+                const error = new HttpError(500, `You must define a schema for types ArrayOf<Schema>`);
+                _logger.error(error);
+                throw error;
             }
             // array schema validation
             if (!Array.isArray(o)) {
-                throw new HttpError(400, `Provided value should have been an array but it's ${typeof o}`)
+                throw new HttpError(400, passStringArgs(messageTemplate, `Provided value should have been an array but it's ${typeof o}`))
             }
             const providedSchema = type[0];
             let result = [];
             for (let i = 0; i < o.length; i++) {
-                result.push(asSchema(o[i], providedSchema, true));
+                result.push(asSchema(o[i], providedSchema, { ...config, strict: true }));
             }
             return result;
         } else {
             // schema validation
-            return asSchema(o, type, true);
+            return asSchema(o, type, { ...config, strict: true });
         }
     } else {
-        throw new HttpError(500, `Unsupported type check ${type}`)
+        const error = new HttpError(500, `Unsupported type check ${type}`);
+        _logger.error(error);
+        throw error;
     }
 }
 
-function checkPrimitive(o, type, varName = o) {
-    const error = new HttpError(400, `${varName} should have been a ${type}. But it's ${typeof o}`);
+function checkPrimitive(o, type, config = { errorVariableName: o, messageTemplate: "{0}" }) {
+    const errorVariableName = config.errorVariableName ?? o;
+    const messageTemplate = config.messageTemplate ?? "{0}";
+    const error = new HttpError(400, passStringArgs(messageTemplate, `${errorVariableName} should have been a ${type}. But it's ${o == null ? "null" : typeof o}`));
     if (type === "integer") {
         if (!Number.isInteger(o)) {
             throw error;
@@ -253,5 +315,7 @@ module.exports = {
     getOrElse,
     schema,
     as,
-    asStrict
+    asStrict,
+    log,
+    setLogger
 }

@@ -35,15 +35,7 @@ export function getOrThrow<T, K extends NonNullable<T>, E extends HttpError>(dat
 export function getOrElse<T, E>(data: T, defaultValue: E): E extends NonNullable<infer T> ? E : T | E;
 export function schema<T extends JsSchema>(schema: T): TypedSchema<T>;
 
-type ExtendedTypeMap = {
-    "string": string,
-    "string[]": string[],
-    "boolean": boolean,
-    "boolean[]": boolean[],
-    "number": number,
-    "number[]": number[],
-    "integer": number,
-    "integer[]": number[],
+interface ExtendedTypeMap extends TypeMap {
     "string?": string | null,
     "string[]?": string[] | null,
     "boolean?": boolean | null,
@@ -55,6 +47,26 @@ type ExtendedTypeMap = {
 }
 
 type ExtendedTypeKeys = keyof ExtendedTypeMap;
-type ExtValOf<T extends ExtendedTypeKeys> = ExtendedTypeMap[T]
-export function as<T extends (ExtendedTypeKeys | JsSchema | ArraySchema)>(o:any, type: T, errorVariableName?: string): T extends ExtendedTypeKeys ? ExtValOf<T> : TypedSchema<T>;
-export function asStrict<T extends (ExtendedTypeKeys | JsSchema | ArraySchema)>(o:any, type: T, errorVariableName?: string): T extends ExtendedTypeKeys ? ExtValOf<T> : TypedSchema<T>;
+type ExtValOf<T extends ExtendedTypeKeys> = ExtendedTypeMap[T];
+type ErrorVariableConfiguration = {
+    errorVariableName?: string
+};
+type ErrorTemplateConfiguration = {
+    messageTemplate?: string
+};
+type ErrorConfiguration = ErrorVariableConfiguration & ErrorTemplateConfiguration;
+
+
+export function as<T extends (ExtendedTypeKeys | JsSchema | ArraySchema)>(o: any, type: T, config?: ErrorConfiguration): T extends ExtendedTypeKeys ? ExtValOf<T> : TypedSchema<T>;
+export function asStrict<T extends (ExtendedTypeKeys | JsSchema | ArraySchema)>(o: any, type: T, config?: ErrorConfiguration): T extends ExtendedTypeKeys ? ExtValOf<T> : TypedSchema<T>;
+
+type Log = {
+    fatal: (message: any) => void,
+    error: (message: any) => void,
+    warn: (message: any) => void,
+    info: (message: any) => void,
+    debug: (message: any) => void,
+    trace: (message: any) => void,
+}
+export const log: Log;
+export function setLogger(logger: Log): void;
