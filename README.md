@@ -2,6 +2,13 @@
 <img src="https://raw.githubusercontent.com/ufukbakan/bootpress/main/bootpress.svg" width=500 alt="bootpress">
 </h1>
 <p align=center>Express but Spring Boot like</p>
+<center>
+
+[![npm](https://img.shields.io/npm/v/bootpress)](https://www.npmjs.com/package/bootpress)
+![npm downloads](https://img.shields.io/npm/dt/bootpress)
+![MIT license](https://img.shields.io/npm/l/bootpress)
+
+</center>
 
 ## Quick Start
 Recommended tool: **[create-bootpress-app](https://www.npmjs.com/package/create-bootpress-app)**
