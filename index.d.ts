@@ -27,7 +27,7 @@ type TypeValueOf<S extends ExtendedTypeKeys | JsSchema | TypedSchema<JsSchema> |
     : never;
 
 declare function RestService<T extends Record<PropertyKey, any>>(service: InstanceOrClass<T>): RestedService<T>;
-declare function RestMethod<T>(callback: () => T): RequestHandler;
+declare function RestMethod<T extends Function>(callback: T): (args: Parameters<T>) => RequestHandler;
 declare function Restify(target: any, key: PropertyKey, desc: PropertyDescriptor): PropertyDescriptor;
 
 declare function PassBody<F extends RequsetHandlerWithLastArg<any>>(serviceFunction: F): ShiftRequestHandler<F>
