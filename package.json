@@ -1,6 +1,6 @@
 {
   "name": "bootpress",
-  "version": "10.0.1",
+  "version": "10.0.2",
   "description": "REST service methods for express",
   "main": "index.js",
   "repository": {
@@ -10,6 +10,10 @@
   "keywords": [
     "bootpress",
     "express",
+    "js",
+    "javascript",
+    "backend framework",
+    "backend",
     "rest",
     "service",
     "methods",
