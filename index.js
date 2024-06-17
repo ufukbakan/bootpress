@@ -34,46 +34,45 @@ function RestService(service) {
             const propertyName = keyvalue[0];
             const value = keyvalue[1].value;
             if (typeof value == "function" && !propertyName.startsWith("#")) {
-            newService[propertyName] = ((...args) =>
-                        (req, res) => {
-                            try {
-                                const result = service[propertyName](...args);
-                                if (result == undefined) {
-                                    reply(res, 204, null);
-                        }
-                        else if (result instanceof Promise) {
-                            result.then(r => {
-                                            if (r == undefined) {
-                                                reply(res, 204, null);
-                                            } else {
-                                                reply(res, r.status ?? 200, r.data ?? r);
-                                            }
-                            }).catch(e => {
-                                            const status = e.status ?? 500;
-                                            status === 500 && log.error(e.stack);
-                                            reply(res, status, e.message ?? e);
-                            })
-                        }
-                        else {
-                            reply(res, result.status ?? 200, result.data ?? result)
-                                }
-                            } catch (e) {
-                                const status = e.status ?? 500;
-                                status === 500 && log.error(e.stack);
-                                reply(res, status, e.message ?? e);
+                newService[propertyName] = ((...args) =>
+                    (req, res) => {
+                        try {
+                            const result = service[propertyName](...args);
+                            if (result == undefined) {
+                                reply(res, 204, null);
                             }
-                });
+                            else if (result instanceof Promise) {
+                                result.then(r => {
+                                    if (r == undefined) {
+                                        reply(res, 204, null);
+                                    } else {
+                                        reply(res, r.status ?? 200, r.data ?? r);
+                                    }
+                                }).catch(e => {
+                                    const status = e.status ?? 500;
+                                    status === 500 && log.error(e.stack);
+                                    reply(res, status, e.message ?? e);
+                                })
+                            }
+                            else {
+                                reply(res, result.status ?? 200, result.data ?? result)
+                            }
+                        } catch (e) {
+                            const status = e.status ?? 500;
+                            status === 500 && log.error(e.stack);
+                            reply(res, status, e.message ?? e);
+                        }
+                    });
             } else {
                 newService[propertyName] = service[propertyName];
             }
-    })
+        })
     return newService;
 }
 
 function RestMethod(callback) {
     if (callback.length < 1) {
-        const result = callback();
-        return handle(result);
+        return handle(callback());
     }
     return (...args) => handle(callback(...args));
     function handle(result) {
@@ -117,15 +116,15 @@ function Restify(target, key, desc) {
                     }
                     else if (result instanceof Promise) {
                         result.then(r => {
-                                if (r == undefined) {
-                                    reply(res, 204, null);
-                                } else {
-                                    reply(res, r.status ?? 200, r.data ?? r);
-                                }
+                            if (r == undefined) {
+                                reply(res, 204, null);
+                            } else {
+                                reply(res, r.status ?? 200, r.data ?? r);
+                            }
                         }).catch(e => {
-                                const status = e.status ?? 500;
-                                status === 500 && log.error(e.stack);
-                                reply(res, status, e.message ?? e);
+                            const status = e.status ?? 500;
+                            status === 500 && log.error(e.stack);
+                            reply(res, status, e.message ?? e);
                         })
                     } else {
                         reply(res, result.status ?? 200, result.data ?? result);
