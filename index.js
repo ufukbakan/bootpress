@@ -24,8 +24,8 @@ function RestService(service) {
         }
     }
     const descriptors = {
-        ...Object.getOwnPropertyDescriptors(service),
-        ...Object.getOwnPropertyDescriptors(service.__proto__ || {})
+        ...Object.getOwnPropertyDescriptors(service.__proto__ || {}),
+        ...Object.getOwnPropertyDescriptors(service)
     };
     const newService = {};
     Object.entries(descriptors).filter(keyvalue => !protectedProperties.includes(keyvalue[0])).forEach(keyvalue => {
@@ -69,9 +69,9 @@ function RestService(service) {
 }
 
 function RestMethod(callback) {
-    return (req, res) => {
+    return (...args) => (req, res) => {
         try {
-            const result = callback();
+            const result = callback(...args);
             if (result == undefined) {
                 reply(res, 204, null);
             }
