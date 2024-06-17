@@ -28,72 +28,78 @@ function RestService(service) {
         ...Object.getOwnPropertyDescriptors(service)
     };
     const newService = {};
-    Object.entries(descriptors).filter(keyvalue => !protectedProperties.includes(keyvalue[0])).forEach(keyvalue => {
-        const propertyName = keyvalue[0];
-        const value = keyvalue[1].value;
-        if (typeof value == "function" && !propertyName.startsWith("#")) {
+    Object.entries(descriptors)
+        .filter((keyvalue) => !protectedProperties.includes(keyvalue[0]))
+        .forEach((keyvalue) => {
+            const propertyName = keyvalue[0];
+            const value = keyvalue[1].value;
+            if (typeof value == "function" && !propertyName.startsWith("#")) {
             newService[propertyName] = ((...args) =>
-                (req, res) => {
-                    try {
-                        const result = service[propertyName](...args);
-                        if (result == undefined) {
-                            reply(res, 204, null);
+                        (req, res) => {
+                            try {
+                                const result = service[propertyName](...args);
+                                if (result == undefined) {
+                                    reply(res, 204, null);
                         }
                         else if (result instanceof Promise) {
                             result.then(r => {
-                                if (r == undefined) {
-                                    reply(res, 204, null);
-                                } else {
-                                    reply(res, r.status ?? 200, r.data ?? r);
-                                }
+                                            if (r == undefined) {
+                                                reply(res, 204, null);
+                                            } else {
+                                                reply(res, r.status ?? 200, r.data ?? r);
+                                            }
                             }).catch(e => {
-                                const status = e.status ?? 500;
-                                status === 500 && log.error(e.stack);
-                                reply(res, status, e.message ?? e);
+                                            const status = e.status ?? 500;
+                                            status === 500 && log.error(e.stack);
+                                            reply(res, status, e.message ?? e);
                             })
                         }
                         else {
                             reply(res, result.status ?? 200, result.data ?? result)
-                        }
-                    } catch (e) {
-                        const status = e.status ?? 500;
-                        status === 500 && log.error(e.stack);
-                        reply(res, status, e.message ?? e);
-                    }
+                                }
+                            } catch (e) {
+                                const status = e.status ?? 500;
+                                status === 500 && log.error(e.stack);
+                                reply(res, status, e.message ?? e);
+                            }
                 });
-        } else {
-            newService[propertyName] = service[propertyName];
-        }
+            } else {
+                newService[propertyName] = service[propertyName];
+            }
     })
     return newService;
 }
 
 function RestMethod(callback) {
-    return (...args) => (req, res) => {
+    if (callback.length < 1) {
+        const result = callback();
+        return handle(result);
+    }
+    return (...args) => handle(callback(...args));
+    function handle(result) {
         try {
-            const result = callback(...args);
             if (result == undefined) {
                 reply(res, 204, null);
-            }
-            else if (result instanceof Promise) {
-                result.then(r => {
+            } else if (result instanceof Promise) {
+                result.then((r) => {
                     if (r == undefined) {
                         reply(res, 204, undefined);
                     } else {
                         reply(res, r.status ?? 200, r.data ?? r);
                     }
-                }).catch(e => {
-                    const status = e.status ?? 500;
-                    status === 500 && log.error(e.stack);
-                    reply(res, status, e.message ?? e);
                 })
+                    .catch((e) => {
+                        const status = e.status ?? 500;
+                        status === 500 && log.error(e.stack);
+                        reply(res, status, e.message ?? e);
+                    });
             } else {
                 reply(res, result.status ?? 200, result.data ?? result);
             }
         } catch (e) {
             const status = e.status ?? 500;
             status === 500 && log.error(e.stack);
-            reply(res, status, e.message ?? e)
+            reply(res, status, e.message ?? e);
         }
     }
 }
@@ -111,15 +117,15 @@ function Restify(target, key, desc) {
                     }
                     else if (result instanceof Promise) {
                         result.then(r => {
-                            if (r == undefined) {
-                                reply(res, 204, null);
-                            } else {
-                                reply(res, r.status ?? 200, r.data ?? r);
-                            }
+                                if (r == undefined) {
+                                    reply(res, 204, null);
+                                } else {
+                                    reply(res, r.status ?? 200, r.data ?? r);
+                                }
                         }).catch(e => {
-                            const status = e.status ?? 500;
-                            status === 500 && log.error(e.stack);
-                            reply(res, status, e.message ?? e);
+                                const status = e.status ?? 500;
+                                status === 500 && log.error(e.stack);
+                                reply(res, status, e.message ?? e);
                         })
                     } else {
                         reply(res, result.status ?? 200, result.data ?? result);
@@ -151,57 +157,68 @@ function PassParam(paramName) {
     return (actualHandler) => {
         return (...args) => {
             if (isRequstHandlerArgs(args)) {
-                const req = args.at(-3); const res = args.at(-2);
+                const req = args.at(-3);
+                const res = args.at(-2);
                 const paramToPass = req.params[paramName];
                 return actualHandler(paramToPass)(req, res);
             } else {
-                return (req, res) => { const paramToPass = req.params[paramName]; actualHandler(...args, paramToPass)(req, res); };
+                return (req, res) => {
+                    const paramToPass = req.params[paramName];
+                    actualHandler(...args, paramToPass)(req, res);
+                };
             }
-        }
-    }
+        };
+    };
 }
 
 function PassQuery(searchQuery) {
     return (actualHandler) => {
         return (...args) => {
             if (isRequstHandlerArgs(args)) {
-                const req = args.at(-3); const res = args.at(-2);
+                const req = args.at(-3);
+                const res = args.at(-2);
                 const paramToPass = req.query[searchQuery];
                 return actualHandler(paramToPass)(req, res);
             } else {
-                return (req, res) => { const paramToPass = req.query[searchQuery]; actualHandler(...args, paramToPass)(req, res); };
+                return (req, res) => {
+                    const paramToPass = req.query[searchQuery];
+                    actualHandler(...args, paramToPass)(req, res);
+                };
             }
-        }
-    }
+        };
+    };
 }
 
 function PassAllParams(actualHandler) {
     return (...args) => {
         if (isRequstHandlerArgs(args)) {
-            const req = args.at(-3); const res = args.at(-2);
+            const req = args.at(-3);
+            const res = args.at(-2);
             return actualHandler(req.params)(req, res);
         } else {
             return (req, res) => actualHandler(...args, req.params)(req, res);
         }
-    }
+    };
 }
 
 function PassAllQueries(actualHandler) {
     return (...args) => {
         if (isRequstHandlerArgs(args)) {
-            const req = args.at(-3); const res = args.at(-2);
+            const req = args.at(-3);
+            const res = args.at(-2);
             return actualHandler(req.query)(req, res);
         } else {
             return (req, res) => actualHandler(...args, req.query)(req, res);
         }
-    }
+    };
 }
 
 function ParseBodyAs(type, config = { messageTemplate: "Malformed Request Body\n{0}" }) {
     return (actualHandler) => {
         return (...args) => {
             if (isRequstHandlerArgs(args)) {
-                const req = args.at(-3); const res = args.at(-2);
+                const req = args.at(-3);
+                const res = args.at(-2);
                 try {
                     return actualHandler(as(req.body, type, config))(req, res);
                 } catch (e) {
@@ -209,7 +226,6 @@ function ParseBodyAs(type, config = { messageTemplate: "Malformed Request Body\n
                     status === 500 && log.error(e.stack);
                     reply(res, status, e.message || e);
                 }
-
             } else {
                 return (req, res) => {
                     try {
@@ -217,19 +233,20 @@ function ParseBodyAs(type, config = { messageTemplate: "Malformed Request Body\n
                     } catch (e) {
                         const status = e.status ?? 500;
                         status === 500 && log.error(e.stack);
-                        reply(res, status, e.message || e)
+                        reply(res, status, e.message || e);
                     }
-                }
+                };
             }
-        }
-    }
+        };
+    };
 }
 
 function PassBodyAs(type, config = { messageTemplate: "Malformed Request Body\n{0}" }) {
     return (actualHandler) => {
         return (...args) => {
             if (isRequstHandlerArgs(args)) {
-                const req = args.at(-3); const res = args.at(-2);
+                const req = args.at(-3);
+                const res = args.at(-2);
                 try {
                     return actualHandler(asStrict(req.body, type, config))(req, res);
                 } catch (e) {
@@ -237,7 +254,6 @@ function PassBodyAs(type, config = { messageTemplate: "Malformed Request Body\n{
                     status === 500 && log.error(e.stack);
                     reply(res, status, e.message || e);
                 }
-
             } else {
                 return (req, res) => {
                     try {
@@ -245,18 +261,19 @@ function PassBodyAs(type, config = { messageTemplate: "Malformed Request Body\n{
                     } catch (e) {
                         const status = e.status ?? 500;
                         status === 500 && log.error(e.stack);
-                        reply(res, status, e.message || e)
+                        reply(res, status, e.message || e);
                     }
-                }
+                };
             }
-        }
-    }
+        };
+    };
 }
 
 function PassBody(actualHandler) {
     return (...args) => {
         if (isRequstHandlerArgs(args)) {
-            const req = args.at(-3); const res = args.at(-2);
+            const req = args.at(-3);
+            const res = args.at(-2);
             try {
                 return actualHandler(req.body)(req, res);
             } catch (e) {
@@ -264,7 +281,6 @@ function PassBody(actualHandler) {
                 status === 500 && log.error(e.stack);
                 reply(res, status, e.message || e);
             }
-
         } else {
             return (req, res) => {
                 try {
@@ -272,58 +288,65 @@ function PassBody(actualHandler) {
                 } catch (e) {
                     const status = e.status ?? 500;
                     status === 500 && log.error(e.stack);
-                    reply(res, status, e.message || e)
+                    reply(res, status, e.message || e);
                 }
-            }
+            };
         }
-    }
+    };
 }
 
 function PassRequest(actualHandler) {
     return (...args) => {
         if (isRequstHandlerArgs(args)) {
-            const req = args.at(-3); const res = args.at(-2);
+            const req = args.at(-3);
+            const res = args.at(-2);
             return actualHandler(req)(req, res);
         } else {
-            return (req, res) => actualHandler(...args, req)(req, res)
+            return (req, res) => actualHandler(...args, req)(req, res);
         }
-    }
+    };
 }
 
 function PassResponse(actualHandler) {
     return (...args) => {
         if (isRequstHandlerArgs(args)) {
-            const req = args.at(-3); const res = args.at(-2);
+            const req = args.at(-3);
+            const res = args.at(-2);
             return actualHandler(res)(req, res);
         } else {
-            return (req, res) => actualHandler(...args, res)(req, res)
+            return (req, res) => actualHandler(...args, res)(req, res);
         }
-    }
+    };
 }
 
 function PassAllCookies(actualHandler) {
     return (...args) => {
         if (isRequstHandlerArgs(args)) {
-            const req = args.at(-3); const res = args.at(-2);
+            const req = args.at(-3);
+            const res = args.at(-2);
             return actualHandler(req.cookies)(req, res);
         } else {
             return (req, res) => actualHandler(...args, req.cookies)(req, res);
         }
-    }
+    };
 }
 
 function PassCookie(cookieName) {
     return (actualHandler) => {
         return (...args) => {
             if (isRequstHandlerArgs(args)) {
-                const req = args.at(-3); const res = args.at(-2);
+                const req = args.at(-3);
+                const res = args.at(-2);
                 const cookie = req.cookies[cookieName];
                 return actualHandler(cookie)(req, res);
             } else {
-                return (req, res) => { const cookie = req.cookies[cookieName]; actualHandler(...args, cookie)(req, res); };
+                return (req, res) => {
+                    const cookie = req.cookies[cookieName];
+                    actualHandler(...args, cookie)(req, res);
+                };
             }
-        }
-    }
+        };
+    };
 }
 
 module.exports = {
@@ -340,5 +363,5 @@ module.exports = {
     PassBodyAs,
     ParseBodyAs,
     PassRequest,
-    PassResponse
-}
+    PassResponse,
+};
