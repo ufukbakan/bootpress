@@ -1,6 +1,6 @@
 {
   "name": "bootpress",
-  "version": "10.0.3",
+  "version": "10.0.4",
   "description": "REST service methods for express",
   "main": "index.js",
   "repository": {
