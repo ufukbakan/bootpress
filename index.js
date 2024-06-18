@@ -7,11 +7,11 @@ const protectedProperties = [
     "toLocaleString"
 ]
 
-function reply(res, status, data) {
-    if (typeof data == "object") {
+function reply(/**@type {import("express").Response} */ res, status, data) {
+    if (typeof data === "object") {
         res.status(status).json(data);
     } else {
-        res.status(status).send(data);
+        res.status(status).send(String(data));
     }
 }
 
