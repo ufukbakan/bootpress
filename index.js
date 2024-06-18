@@ -1,4 +1,5 @@
 const { as, asStrict, log } = require("./helpers");
+const { HttpError } = require("./types");
 
 const protectedProperties = [
     "toString",
@@ -247,6 +248,7 @@ function PassBodyAs(type, config = { messageTemplate: "Malformed Request Body\n{
                 const req = args.at(-3);
                 const res = args.at(-2);
                 try {
+                    if (req.body === null || req.body === undefined) throw new HttpError(400, "Request body is mandatory");
                     return actualHandler(asStrict(req.body, type, config))(req, res);
                 } catch (e) {
                     const status = e.status ?? 500;
@@ -256,6 +258,7 @@ function PassBodyAs(type, config = { messageTemplate: "Malformed Request Body\n{
             } else {
                 return (req, res) => {
                     try {
+                        if (req.body === null || req.body === undefined) throw new HttpError(400, "Request body is mandatory");
                         return actualHandler(...args, asStrict(req.body, type, config))(req, res);
                     } catch (e) {
                         const status = e.status ?? 500;
