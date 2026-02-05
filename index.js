@@ -7,11 +7,11 @@ const protectedProperties = [
     "toLocaleString"
 ]
 
-function reply(/**@type {import("express").Response} */ res, status, data) {
+function reply(/**@type {import("express").Response} */ res, status, data, contentType) {
     if (typeof data === "object") {
         res.status(status).json(data);
     } else {
-        res.status(status).send(String(data));
+        res.status(status).contentType(contentType || "text/plain").send(data);
     }
 }
 
@@ -46,7 +46,7 @@ function RestService(service) {
                                     if (r == undefined) {
                                         reply(res, 204, null);
                                     } else {
-                                        reply(res, r.status ?? 200, r.data ?? r);
+                                        reply(res, r.status ?? 200, r.data ?? r, r.type);
                                     }
                                 }).catch(e => {
                                     const status = e.status ?? 500;
@@ -55,7 +55,7 @@ function RestService(service) {
                                 })
                             }
                             else {
-                                reply(res, result.status ?? 200, result.data ?? result)
+                                reply(res, result.status ?? 200, result.data ?? result, result.type)
                             }
                         } catch (e) {
                             const status = e.status ?? 500;

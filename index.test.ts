@@ -1,6 +1,7 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import { it } from "vitest";
 import { Needs, RestMethod } from ".";
+import { HttpResponse } from "./types";
 
 // @ts-ignore
 const mockReq = {
@@ -50,3 +51,10 @@ it("Rest method with args", () => {
     const endpoint = RestMethod(getUser);
     console.log(endpoint(1)(mockReq, mockRes));
 })
+
+
+const x = new HttpResponse({
+    data: { id: "1", name: "John Doe" },
+    type: "application/json",
+    status: 200
+});

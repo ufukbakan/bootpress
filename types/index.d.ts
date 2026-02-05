@@ -1,13 +1,20 @@
 declare class HttpError extends Error {
-    status: number
-    message: string
-    constructor(status: number, message: string)
+    status: number;
+    message: string;
+    constructor(opts: { status?: number, message?: string });
 }
 
-declare class HttpResponse<T> {
-    status: number
-    data: T
-    constructor(status: number, data: T)
+interface HttpData<T> {
+    data: T;
+    status?: number;
+    type?: string;
+}
+
+declare class HttpResponse<T> implements HttpData<T> {
+    data: T;
+    status: number;
+    type: string;
+    constructor(HttpData: HttpData<T>);
 }
 
 export {

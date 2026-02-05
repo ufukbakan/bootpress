@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { ArraySchema, ErrorTemplateConfiguration, ExtendedTypeKeys, JsSchema, TypedSchema } from "./helpers";
 
 type RequestHandler = {
@@ -24,7 +24,13 @@ declare function RestMethod<T extends FunctionWithoutArgs>(callback: T): Request
 declare function RestMethod<T extends FunctionWithArgs>(callback: T): (...args: Parameters<T>) => RequestHandler;
 declare function Restify(target: any, key: PropertyKey, desc: PropertyDescriptor): PropertyDescriptor;
 
+type ParseBodyArgGetter = {
+    (type: ExtendedTypeKeys | JsSchema | TypedSchema<JsSchema> | ArraySchema): NeedsBuilder;
+    (type: ExtendedTypeKeys | JsSchema | TypedSchema<JsSchema> | ArraySchema, config: ErrorTemplateConfiguration): NeedsBuilder;
+}
+
 type BodyArgGetter = {
+    (): NeedsBuilder;
     (type: ExtendedTypeKeys | JsSchema | TypedSchema<JsSchema> | ArraySchema): NeedsBuilder;
     (type: ExtendedTypeKeys | JsSchema | TypedSchema<JsSchema> | ArraySchema, config: ErrorTemplateConfiguration): NeedsBuilder;
 }
@@ -34,8 +40,8 @@ type NeedsBuilder = {
     params: () => NeedsBuilder;
     query: (name: string) => NeedsBuilder;
     queries: () => NeedsBuilder;
-    body: (() => NeedsBuilder) | BodyArgGetter;
-    parseBody: BodyArgGetter;
+    body: BodyArgGetter;
+    parseBody: ParseBodyArgGetter;
     cookie: (name: string) => NeedsBuilder;
     cookies: () => NeedsBuilder;
     header: (name: string) => NeedsBuilder;
