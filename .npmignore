@@ -1,6 +1,7 @@
 bootpress.svg
 README.md
 pnpm-lock.yaml
+*.test.*
 .vscode
 # Logs
 logs
