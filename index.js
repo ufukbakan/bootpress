@@ -71,7 +71,9 @@ function RestService(service) {
 }
 
 function RestMethod(callback) {
-    return (...args) => handle(callback(...args));
+    return callback.length == 0
+        ? (req, res) => handle(callback())(req, res)
+        : (...args) => handle(callback(...args));
     function handle(result) {
         return (_req, res) => {
             try {

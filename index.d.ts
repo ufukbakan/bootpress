@@ -7,6 +7,7 @@ type RequestHandler = {
 }
 
 type FunctionWithArgs<T = any> = (...args: any[]) => T;
+type FunctionWithoutArgs<T = any> = () => T;
 
 
 type RestedService<T extends Record<PropertyKey, any>> = {
@@ -19,6 +20,7 @@ type RestedService<T extends Record<PropertyKey, any>> = {
 type InstanceOrClass<T extends Record<PropertyKey, any>> = T | (new () => T);
 
 declare function RestService<T extends Record<PropertyKey, any>>(service: InstanceOrClass<T>): RestedService<T>;
+declare function RestMethod<T extends FunctionWithoutArgs>(callback: T): RequestHandler;
 declare function RestMethod<T extends FunctionWithArgs>(callback: T): (...args: Parameters<T>) => RequestHandler;
 declare function Restify(target: any, key: PropertyKey, desc: PropertyDescriptor): PropertyDescriptor;
 
