@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { it } from "vitest";
+import { it, expect, describe } from "vitest";
 import { Route } from ".";
 import { HttpResponse } from "./helpers";
 
@@ -23,52 +23,63 @@ const mockRes = {
   contentType: (...args: any[]) => console.log("contentType", args) || mockRes,
 } as Response;
 
-it("test Route", () => {
-  function getUser(id: string, body: { name: string }) {
-    return {
-      id,
-      name: body.name
+describe("tests", () => {
+  it("test Route", () => {
+    function getUser(id: string, body: { name: string }) {
+      return {
+        id,
+        name: body.name
+      }
     }
-  }
-  Route().param("id").body({ name: "string" }).to(getUser)(mockReq, mockRes)
-});
-
-it("test Route no params", () => {
-  function getUser() {
-    return {
-      id: "1",
-      name: "John Doe"
-    }
-  }
-  Route().to(getUser)(mockReq, mockRes);
-});
-
-it("Rest method with no args", () => {
-  function getUser() {
-    return { id: "1", name: "John Doe" }
-  }
-
-  const endpoint = Route().to(getUser);
-  endpoint(mockReq, mockRes);
-})
-
-it("Rest method with args", () => {
-  function getUser(id: number) {
-    return {
-      1: "John Doe",
-      2: "Jane Doe"
-    }[id];
-  }
-
-  const endpoint = Route().param("id").to(getUser);
-  endpoint(mockReq, mockRes);
-})
-
-it("Html Response", () => {
-  const helloWorld = () => new HttpResponse({
-    data: "<h1>Hello World</h1>",
-    type: "text/html"
+    Route().param("id").body({ name: "string" }).to(getUser)(mockReq, mockRes)
   });
-  const endpoint = Route().to(helloWorld);
-  endpoint(mockReq, mockRes);
-});
+
+  it("test Route no params", () => {
+    function getUser() {
+      return {
+        id: "1",
+        name: "John Doe"
+      }
+    }
+    Route().to(getUser)(mockReq, mockRes);
+  });
+
+  it("Rest method with no args", () => {
+    function getUser() {
+      return { id: "1", name: "John Doe" }
+    }
+
+    const endpoint = Route().to(getUser);
+    endpoint(mockReq, mockRes);
+  })
+
+  it("Rest method with args", () => {
+    function getUser(id: number) {
+      return {
+        1: "John Doe",
+        2: "Jane Doe"
+      }[id];
+    }
+
+    const endpoint = Route().param("id").to(getUser);
+    endpoint(mockReq, mockRes);
+  })
+
+  it("Html Response", () => {
+    const helloWorld = () => new HttpResponse(200, "<h1>Hello World</h1>", "text/html");
+    const endpoint = Route().to(helloWorld);
+    endpoint(mockReq, mockRes);
+  });
+
+  it("Response builder", () => {
+    const response = HttpResponse.builder<number>()
+      .status(200)
+      .data(42)
+      .type("application/json")
+      .build();
+
+    expect(response.status).toBe(200);
+    expect(response.data).toBe(42);
+    expect(response.type).toBe("application/json");
+  });
+})

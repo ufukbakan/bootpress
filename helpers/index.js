@@ -1,17 +1,56 @@
 class HttpError extends Error {
-  constructor({ status, message }) {
-    super(message);
-    this.stack += "\n" + message;
-    this.message = message || "Internal Bootpress Error";
+  constructor(status, message) {
+    const errorMessage = message || "Internal Bootpress Error";
+    super(errorMessage);
+    this.message = errorMessage;
+    this.stack += "\n" + errorMessage;
     this.status = status || 500;
+  }
+  static builder(){
+    const instance = new HttpError();
+    const builderObject = {  
+      status: (status) => {
+        instance.status = status;
+        return builderObject;
+      },
+      message: (message) => {
+        instance.message = message;
+        return builderObject;
+      },
+      build: () => {
+        return instance;
+      }
+    };
+    return builderObject;
   }
 }
 
 class HttpResponse {
-  constructor({ status, data, type }) {
+  constructor(status, data, type) {
     this.status = status || 200;
     this.data = data;
     this.type = type || "application/json";
+  }
+  static builder(){
+    const instance = new HttpResponse();
+    const builderObject = {  
+      status: (status) => {
+        instance.status = status;
+        return builderObject;
+      },
+      data: (data) => {
+        instance.data = data;
+        return builderObject;
+      },
+      type: (type) => {
+        instance.type = type;
+        return builderObject;
+      },
+      build: () => {
+        return instance;
+      }
+    };
+    return builderObject;
   }
 }
 

@@ -1,20 +1,29 @@
+interface HttpErrorBuilder {
+  status(status: number): HttpErrorBuilder;
+  message(message: string): HttpErrorBuilder;
+  build(): HttpError;
+}
+
 export declare class HttpError extends Error {
   status: number;
   message: string;
-  constructor(opts: { status?: number, message?: string });
+  constructor(status: number, message?: string);
+  static builder(): HttpErrorBuilder;
 }
 
-interface HttpData<T> {
-  data: T;
-  status?: number;
-  type?: string;
+interface HttpResponseBuilder<T> {
+  status(status: number): HttpResponseBuilder<T>;
+  data(data: T): HttpResponseBuilder<T>;
+  type(type: string): HttpResponseBuilder<T>;
+  build(): HttpResponse<T>;
 }
 
-export declare class HttpResponse<T> implements HttpData<T> {
+export declare class HttpResponse<T> {
   data: T;
   status: number;
   type: string;
-  constructor(HttpData: HttpData<T>);
+  constructor(status: number, data?: T, type?: string);
+  static builder<T>(): HttpResponseBuilder<T>;
 }
 
 type TypeMap = {
