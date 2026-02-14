@@ -3,7 +3,6 @@ class HttpError extends Error {
     const errorMessage = message || "Internal Bootpress Error";
     super(errorMessage);
     this.message = errorMessage;
-    this.stack += "\n" + errorMessage;
     this.status = status || 500;
   }
   static builder(){
