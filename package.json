@@ -1,9 +1,9 @@
 {
   "name": "bootpress",
-  "version": "11.0.0-rc.9",
+  "version": "11.0.0-rc.10",
   "description": "REST service methods for express",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
     "./helpers": "./dist/helpers/index.js"
